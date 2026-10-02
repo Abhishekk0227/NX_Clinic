@@ -72,7 +72,7 @@ const Login = () => {
               className="form-input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="e.g. admin@apexhealthcare.in"
+              placeholder="e.g. admin@nxclinic.com"
             />
           </div>
 
