@@ -1,0 +1,3169 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Text To Word</title></head><body><h1>V1 TECHNICAL ARCHITECTURE</h1>
+<h2>Healthcare Business Management System</h2>
+<h3>MERN Stack + Dynamic Core + V2/V3 Compatible Architecture</h3>
+<p><strong>Version:</strong> V1<br><strong>Status:</strong> Technical Architecture Source of Truth<br><strong>Depends On:</strong> <code>V1_MASTER_PRODUCT_SPEC</code><br><strong>Target:</strong> Production-ready V1 with V2/V3 extension compatibility</p>
+<hr>
+<h1>1. ARCHITECTURE OBJECTIVE</h1>
+<p>V1 ko aise build karna hai ki:</p>
+<pre><code class="language-text">V1 = independently usable production system
+
+AND
+
+V2/V3 = existing V1 core ke upar modules/extensions
+</code></pre>
+<p>V2 ya V3 ke liye:</p>
+<pre><code class="language-text">Patient system rewrite
+Billing rewrite
+User rewrite
+Form rewrite
+Workflow rewrite
+</code></pre>
+<p>nahi hona chahiye.</p>
+<p>Source architecture ka fundamental principle bhi yahi hai: V1 future features ko implement nahi karta, lekin future ke connection points, IDs, schemas, events, permissions, workflows aur APIs ko pehle se ready rakhta hai.</p>
+<hr>
+<h1>2. TECHNOLOGY STACK</h1>
+<h2>Frontend</h2>
+<pre><code class="language-text">React
+TypeScript
+React Router
+State Management
+Form Rendering Engine
+API Client
+Offline Store
+</code></pre>
+<p>Recommended frontend layering:</p>
+<pre><code class="language-text">React UI
+   ↓
+Page / Feature Components
+   ↓
+Application Hooks
+   ↓
+API / Query Layer
+   ↓
+Local Cache / Offline Layer
+</code></pre>
+<hr>
+<h1>3. BACKEND</h1>
+<pre><code class="language-text">Node.js
+Express.js
+TypeScript
+MongoDB
+Mongoose
+</code></pre>
+<p>Backend layering:</p>
+<pre><code class="language-text">HTTP / Express
+      ↓
+Middleware
+      ↓
+Controllers
+      ↓
+Application Services
+      ↓
+Domain Services
+      ↓
+Repositories
+      ↓
+MongoDB
+</code></pre>
+<p>Frontend must NEVER directly access MongoDB.</p>
+<p>Source architecture explicitly requires:</p>
+<pre><code class="language-text">Web / Mobile
+      ↓
+API
+      ↓
+Application Services
+      ↓
+Domain/Core
+      ↓
+Database
+</code></pre>
+<hr>
+<h1>4. HIGH-LEVEL SYSTEM ARCHITECTURE</h1>
+<pre><code class="language-text">                         ┌───────────────────┐
+                         │   React Frontend  │
+                         └─────────┬─────────┘
+                                   │
+                              HTTPS / API
+                                   │
+                         ┌─────────▼─────────┐
+                         │   Express API     │
+                         └─────────┬─────────┘
+                                   │
+                  ┌────────────────┼────────────────┐
+                  │                │                │
+                  ▼                ▼                ▼
+             Auth/RBAC       Application       Event System
+                               Services
+                  │                │                │
+                  └────────────────┼────────────────┘
+                                   │
+                         ┌─────────▼─────────┐
+                         │   Domain Layer    │
+                         └─────────┬─────────┘
+                                   │
+                 ┌─────────────────┼─────────────────┐
+                 ▼                 ▼                 ▼
+              MongoDB          File Storage       Queue/Jobs
+</code></pre>
+<hr>
+<h1>5. MONOREPO STRUCTURE</h1>
+<p>Use a single repository so V1/V2/V3 contracts remain coordinated.</p>
+<pre><code class="language-text">healthcare-platform/
+│
+├── apps/
+│   ├── web/
+│   └── api/
+│
+├── packages/
+│   ├── shared-types/
+│   ├── api-contracts/
+│   ├── validation/
+│   ├── permissions/
+│   ├── events/
+│   ├── form-engine/
+│   ├── workflow-engine/
+│   └── common/
+│
+├── docs/
+│   ├── V1_MASTER_PRODUCT_SPEC
+│   ├── V1_TECHNICAL_ARCHITECTURE
+│   └── V1_IMPLEMENTATION_PLAN
+│
+└── tests/
+</code></pre>
+<p>Future:</p>
+<pre><code class="language-text">packages/
+├── ipd/
+├── pharmacy/
+├── lab/
+├── inventory/
+├── insurance/
+</code></pre>
+<p>V2 modules must consume existing core packages instead of recreating them.</p>
+<hr>
+<h1>6. BACKEND MODULE STRUCTURE</h1>
+<pre><code class="language-text">src/
+│
+├── config/
+├── middleware/
+├── common/
+├── auth/
+├── organization/
+├── users/
+├── roles/
+├── permissions/
+├── configuration/
+├── modules/
+├── forms/
+├── workflows/
+├── services/
+├── patients/
+├── appointments/
+├── queue/
+├── encounters/
+├── clinical/
+├── treatments/
+├── prescriptions/
+├── billing/
+├── payments/
+├── receipts/
+├── documents/
+├── followups/
+├── notifications/
+├── reports/
+├── audit/
+├── events/
+├── sync/
+├── imports/
+├── exports/
+└── health/
+</code></pre>
+<p>Each module should internally follow:</p>
+<pre><code class="language-text">module/
+├── controller
+├── service
+├── repository
+├── model
+├── validator
+├── routes
+├── mapper
+└── tests
+</code></pre>
+<hr>
+<h1>7. CORE ARCHITECTURE LAYERS</h1>
+<h2>Layer 1 — API</h2>
+<p>Responsible for:</p>
+<pre><code class="language-text">Authentication
+Validation
+Request parsing
+Response formatting
+HTTP errors
+Rate limits
+</code></pre>
+<h2>Layer 2 — Application</h2>
+<p>Responsible for:</p>
+<pre><code class="language-text">Use cases
+Transactions
+Orchestration
+Permission checks
+Workflow invocation
+Event publishing
+</code></pre>
+<h2>Layer 3 — Domain</h2>
+<p>Responsible for:</p>
+<pre><code class="language-text">Business rules
+State transitions
+Financial rules
+Clinical rules
+Workflow rules
+</code></pre>
+<h2>Layer 4 — Persistence</h2>
+<p>Responsible for:</p>
+<pre><code class="language-text">MongoDB queries
+Repositories
+Indexes
+Transactions
+</code></pre>
+<p>This separation prevents controllers from becoming business-logic containers.</p>
+<hr>
+<h1>8. CORE ENTITY MODEL</h1>
+<p>The architecture must use generic core entities rather than separate Dental/Hospital tables.</p>
+<p>Core:</p>
+<pre><code class="language-text">Organization
+Location / Branch
+Department
+Unit
+Resource
+Person
+User
+Role
+Permission
+Provider
+Patient
+Service
+Record
+Appointment
+QueueEntry
+Encounter
+ClinicalRecord
+Treatment
+Prescription
+Form
+Workflow
+Transaction
+Invoice
+Payment
+Receipt
+Document
+Notification
+AuditLog
+</code></pre>
+<p>The source explicitly defines the core around these reusable entities.</p>
+<hr>
+<h1>9. ID STRATEGY</h1>
+<p>Every entity receives a permanent immutable identifier.</p>
+<p>Examples:</p>
+<pre><code class="language-text">organizationId
+branchId
+departmentId
+unitId
+resourceId
+personId
+userId
+roleId
+permissionId
+providerId
+patientId
+serviceId
+appointmentId
+queueEntryId
+encounterId
+clinicalRecordId
+treatmentId
+prescriptionId
+invoiceId
+paymentId
+receiptId
+documentId
+workflowId
+formId
+auditLogId
+eventId
+</code></pre>
+<p>Rules:</p>
+<pre><code class="language-text">ID never changes.
+ID never reused.
+ID must not encode business meaning.
+ID must not depend on branch/name/date.
+</code></pre>
+<p>This is explicitly required for future V2/V3 continuity.</p>
+<hr>
+<h1>10. MULTI-TENANCY MODEL</h1>
+<p>Every organization is a tenant.</p>
+<p>Concept:</p>
+<pre><code class="language-text">Organization A
+     │
+     ├── Branch A
+     ├── Users
+     ├── Patients
+     └── Transactions
+
+Organization B
+     │
+     ├── Branch B
+     ├── Users
+     ├── Patients
+     └── Transactions
+</code></pre>
+<p>Never allow:</p>
+<pre><code class="language-text">Organization A → Organization B data
+</code></pre>
+<hr>
+<h1>11. TENANT ISOLATION RULE</h1>
+<p>All tenant-owned collections must contain:</p>
+<pre><code class="language-text">organizationId
+</code></pre>
+<p>Branch-sensitive entities should contain:</p>
+<pre><code class="language-text">branchId
+</code></pre>
+<p>Department-sensitive entities may contain:</p>
+<pre><code class="language-text">departmentId
+</code></pre>
+<p>Every repository query must apply tenant scope.</p>
+<p>Example conceptual rule:</p>
+<pre><code class="language-text">findPatient(patientId)
+</code></pre>
+<p>is NOT enough.</p>
+<p>It must behave conceptually like:</p>
+<pre><code class="language-text">findPatient({
+    patientId,
+    organizationId
+})
+</code></pre>
+<p>The architecture source explicitly requires logical tenant isolation and branch-level permissions.</p>
+<hr>
+<h1>12. ORGANIZATION HIERARCHY</h1>
+<pre><code class="language-text">Organization
+    ↓
+Branch
+    ↓
+Department
+    ↓
+Unit
+    ↓
+Resource
+</code></pre>
+<p>Single doctor:</p>
+<pre><code class="language-text">Organization
+└── Main Branch
+</code></pre>
+<p>Hospital:</p>
+<pre><code class="language-text">Organization
+├── Bhopal
+│   ├── OPD
+│   ├── Dental
+│   └── Lab
+│
+└── Indore
+    ├── OPD
+    └── Dental
+</code></pre>
+<p>Same schema.</p>
+<hr>
+<h1>13. USER IDENTITY MODEL</h1>
+<p>Separate:</p>
+<pre><code class="language-text">Person
+User
+Provider
+Patient
+Staff
+</code></pre>
+<p>A person can have multiple roles.</p>
+<p>Example:</p>
+<pre><code class="language-text">Person
+ ├── User
+ ├── Provider
+ └── Patient
+</code></pre>
+<p>The source explicitly separates generic Person from Patient and allows the same person to represent patient, doctor, staff, guardian or emergency contact.</p>
+<hr>
+<h1>14. USER / ROLE / PERMISSION</h1>
+<p>Collections:</p>
+<pre><code class="language-text">users
+roles
+permissions
+userRoles
+rolePermissions
+</code></pre>
+<p>Do NOT encode permissions directly into a hard-coded frontend role check.</p>
+<hr>
+<h1>15. PERMISSION FORMAT</h1>
+<p>Use granular stable keys:</p>
+<pre><code class="language-text">patient.view
+patient.create
+patient.edit
+patient.archive
+
+appointment.view
+appointment.create
+appointment.edit
+appointment.cancel
+
+queue.view
+queue.manage
+
+clinical.view
+clinical.create
+clinical.edit
+
+billing.view
+billing.create
+billing.edit
+
+payment.view
+payment.create
+payment.verify
+payment.refund
+
+report.view
+report.export
+</code></pre>
+<p>Future V2:</p>
+<pre><code class="language-text">inventory.approve
+pharmacy.dispense
+lab.verify
+ipd.admit
+</code></pre>
+<p>Existing permission system remains unchanged.</p>
+<p>The source specifically uses this granular permission approach.</p>
+<hr>
+<h1>16. RBAC + SCOPE</h1>
+<p>Authorization is two-dimensional:</p>
+<pre><code class="language-text">Permission
++
+Scope
+</code></pre>
+<p>Example:</p>
+<pre><code class="language-text">billing.view
+</code></pre>
+<p>plus:</p>
+<pre><code class="language-text">branch = current branch
+</code></pre>
+<p>A user may have:</p>
+<pre><code class="language-text">billing.view
+</code></pre>
+<p>but only for:</p>
+<pre><code class="language-text">Branch A
+</code></pre>
+<p>Another admin may have:</p>
+<pre><code class="language-text">billing.view
+</code></pre>
+<p>for:</p>
+<pre><code class="language-text">Organization-wide
+</code></pre>
+<hr>
+<h1>17. AUTHENTICATION</h1>
+<p>Authentication layer must support:</p>
+<pre><code class="language-text">Login
+Logout
+Password hashing
+Session/token management
+Refresh mechanism
+Password reset
+Account status
+</code></pre>
+<p>Never store plain passwords.</p>
+<hr>
+<h1>18. AUTHORIZATION PIPELINE</h1>
+<p>Every protected API request:</p>
+<pre><code class="language-text">Request
+ ↓
+Authenticate User
+ ↓
+Resolve Organization
+ ↓
+Resolve Branch Scope
+ ↓
+Load Permissions
+ ↓
+Check Permission
+ ↓
+Check Entity Scope
+ ↓
+Execute Use Case
+</code></pre>
+<p>Never rely only on frontend hiding buttons.</p>
+<hr>
+<h1>19. CONFIGURATION ENGINE</h1>
+<p>Configuration hierarchy:</p>
+<pre><code class="language-text">System
+ ↓
+Organization
+ ↓
+Branch
+ ↓
+Department
+ ↓
+User / Role
+</code></pre>
+<p>Configuration categories:</p>
+<pre><code class="language-text">Module Configuration
+Feature Configuration
+Form Configuration
+Workflow Configuration
+Service Configuration
+Dashboard Configuration
+Notification Configuration
+Template Configuration
+</code></pre>
+<p>Code must not hard-code:</p>
+<pre><code class="language-text">Dental ON
+IPD OFF
+Queue ON
+</code></pre>
+<p>These must be database/configuration driven.</p>
+<hr>
+<h1>20. FEATURE FLAGS</h1>
+<p>Feature configuration supports:</p>
+<pre><code class="language-text">organization
+branch
+environment
+</code></pre>
+<p>Example:</p>
+<pre><code class="language-text">pharmacy = false
+</code></pre>
+<p>Testing:</p>
+<pre><code class="language-text">pharmacy = true
+</code></pre>
+<p>Branch-level:</p>
+<pre><code class="language-text">Bhopal = true
+Indore = false
+</code></pre>
+<p>Source explicitly requires this capability for future controlled rollout.</p>
+<hr>
+<h1>21. DYNAMIC FORM ENGINE</h1>
+<p>Collections:</p>
+<pre><code class="language-text">forms
+formSections
+formFields
+fieldOptions
+fieldValidations
+formVersions
+formSubmissions / formValues
+</code></pre>
+<p>Required architecture:</p>
+<pre><code class="language-text">Form
+ ↓
+FormVersion
+ ↓
+Sections
+ ↓
+Fields
+ ↓
+Options
+ ↓
+Validation
+</code></pre>
+<p>Source defines the base entities as Form, FormSection, FormField, FieldOption and FieldValidation.</p>
+<hr>
+<h1>22. FORM DEFINITION</h1>
+<p>A form should conceptually contain:</p>
+<pre><code class="language-text">id
+organizationId
+name
+key
+description
+entityType
+status
+currentVersionId
+createdAt
+updatedAt
+</code></pre>
+<p>Example:</p>
+<pre><code class="language-text">key = dental-examination
+entityType = clinical-record
+</code></pre>
+<hr>
+<h1>23. FORM VERSION</h1>
+<pre><code class="language-text">formVersionId
+formId
+versionNumber
+status
+publishedAt
+publishedBy
+schemaSnapshot
+</code></pre>
+<p>A published version is immutable.</p>
+<p>If changed:</p>
+<pre><code class="language-text">Dental Examination v1
+        ↓
+Dental Examination v2
+</code></pre>
+<p>Old clinical records continue referencing v1.</p>
+<hr>
+<h1>24. FORM FIELD</h1>
+<p>Field definition:</p>
+<pre><code class="language-text">id
+formVersionId
+sectionId
+key
+label
+type
+required
+defaultValue
+placeholder
+helpText
+order
+visibleWhen
+readOnlyWhen
+validationConfig
+referenceConfig
+</code></pre>
+<p>Supported types:</p>
+<pre><code class="language-text">text
+textarea
+number
+decimal
+date
+datetime
+boolean
+checkbox
+radio
+select
+multiSelect
+file
+image
+phone
+email
+reference
+</code></pre>
+<hr>
+<h1>25. DYNAMIC VALUE STORAGE</h1>
+<p>Do NOT put the entire patient record into an uncontrolled JSON blob.</p>
+<p>Core fields remain structured.</p>
+<p>Dynamic form values use a controlled architecture:</p>
+<pre><code class="language-text">FormSubmission
+   ↓
+FormValue
+</code></pre>
+<p>Concept:</p>
+<pre><code class="language-text">formSubmissionId
+entityType
+entityId
+formVersionId
+fieldKey
+value
+valueType
+</code></pre>
+<p>The source explicitly says core searchable fields must remain proper structured fields and dynamic fields use controlled form/value architecture.</p>
+<hr>
+<h1>26. FORM VALIDATION</h1>
+<p>Validation must happen:</p>
+<pre><code class="language-text">Frontend
++
+Backend
+</code></pre>
+<p>Never trust frontend validation alone.</p>
+<p>Examples:</p>
+<pre><code class="language-text">required
+min
+max
+pattern
+allowedOptions
+dateRange
+referenceExists
+</code></pre>
+<hr>
+<h1>27. CONDITIONAL FORM LOGIC</h1>
+<p>Example:</p>
+<pre><code class="language-text">Has Allergy = Yes
+       ↓
+Show Allergy Details
+</code></pre>
+<p>Another:</p>
+<pre><code class="language-text">Procedure = Root Canal
+       ↓
+Show Tooth Number
+</code></pre>
+<p>The rules are stored as configuration, not hard-coded per specialty.</p>
+<hr>
+<h1>28. FORM RENDERING FLOW</h1>
+<pre><code class="language-text">Screen
+ ↓
+Request Form
+ ↓
+Resolve Organization
+ ↓
+Resolve Branch
+ ↓
+Resolve Service
+ ↓
+Resolve Form Version
+ ↓
+Resolve Permissions
+ ↓
+Resolve Conditional Rules
+ ↓
+Render Form
+ ↓
+Validate
+ ↓
+Save Submission
+ ↓
+Audit
+ ↓
+Publish Event
+</code></pre>
+<hr>
+<h1>29. WORKFLOW ENGINE</h1>
+<p>Collections:</p>
+<pre><code class="language-text">workflows
+workflowVersions
+workflowSteps
+workflowTransitions
+workflowConditions
+workflowActions
+workflowInstances
+workflowInstanceSteps
+</code></pre>
+<p>The source explicitly defines these workflow concepts.</p>
+<hr>
+<h1>30. WORKFLOW DEFINITION</h1>
+<p>Conceptual:</p>
+<pre><code class="language-text">Workflow
+ ├── name
+ ├── key
+ ├── entityType
+ ├── status
+ └── currentVersion
+</code></pre>
+<p>Example:</p>
+<pre><code class="language-text">key = outpatient-visit
+entityType = encounter
+</code></pre>
+<hr>
+<h1>31. WORKFLOW VERSION</h1>
+<pre><code class="language-text">workflowId
+versionNumber
+status
+publishedAt
+publishedBy
+</code></pre>
+<p>Once used in a business record, the workflow version must remain historically identifiable.</p>
+<hr>
+<h1>32. WORKFLOW STEP</h1>
+<p>Example:</p>
+<pre><code class="language-text">registration
+appointment
+checkin
+queue
+consultation
+billing
+followup
+</code></pre>
+<p>Each step has:</p>
+<pre><code class="language-text">stepKey
+name
+type
+order
+requiredPermissions
+formReference
+serviceReference
+</code></pre>
+<hr>
+<h1>33. WORKFLOW TRANSITION</h1>
+<p>A transition defines:</p>
+<pre><code class="language-text">fromStep
+toStep
+action
+conditions
+permissions
+</code></pre>
+<p>Example:</p>
+<pre><code class="language-text">Waiting
+   ↓ Start
+In Consultation
+</code></pre>
+<hr>
+<h1>34. WORKFLOW CONDITIONS</h1>
+<p>Example:</p>
+<pre><code class="language-text">payment.status == "paid"
+</code></pre>
+<p>or:</p>
+<pre><code class="language-text">service.category == "lab"
+</code></pre>
+<p>or:</p>
+<pre><code class="language-text">user.permission == "clinical.complete"
+</code></pre>
+<p>Conditions must be evaluated by a controlled rule engine.</p>
+<p>Never execute arbitrary JavaScript from database configuration.</p>
+<hr>
+<h1>35. WORKFLOW ACTIONS</h1>
+<p>Allowed action types should be controlled.</p>
+<p>Examples:</p>
+<pre><code class="language-text">createRecord
+updateRecord
+createTask
+createNotification
+createInvoice
+publishEvent
+changeStatus
+</code></pre>
+<p>Do not allow unrestricted code execution through workflow configuration.</p>
+<hr>
+<h1>36. WORKFLOW INSTANCE</h1>
+<p>Every actual patient/business workflow gets an instance:</p>
+<pre><code class="language-text">workflowInstanceId
+workflowId
+workflowVersionId
+entityType
+entityId
+currentStep
+status
+startedAt
+completedAt
+</code></pre>
+<p>Example:</p>
+<pre><code class="language-text">workflow = outpatient-visit
+entity = encounterId
+currentStep = consultation
+</code></pre>
+<hr>
+<h1>37. SERVICE ENGINE</h1>
+<p>Service collection:</p>
+<pre><code class="language-text">services
+serviceVersions
+servicePrices
+serviceRules
+</code></pre>
+<p>Core fields:</p>
+<pre><code class="language-text">serviceId
+name
+category
+departmentId
+duration
+price
+tax
+workflowId
+formId
+requiredRole
+billingRules
+status
+</code></pre>
+<p>These attributes are explicitly defined in the source architecture.</p>
+<hr>
+<h1>38. SERVICE VERSIONING</h1>
+<p>Prices and service rules can change.</p>
+<p>Do not overwrite historical pricing blindly.</p>
+<p>Example:</p>
+<pre><code class="language-text">Root Canal
+Price v1 = ₹5000
+Price v2 = ₹6000
+</code></pre>
+<p>Old invoice remains ₹5000.</p>
+<hr>
+<h1>39. PERSON / PATIENT DATA MODEL</h1>
+<p>Core:</p>
+<pre><code class="language-text">persons
+patients
+providers
+</code></pre>
+<p>Person:</p>
+<pre><code class="language-text">personId
+name
+DOB
+gender
+contact
+address
+</code></pre>
+<p>Patient:</p>
+<pre><code class="language-text">patientId
+personId
+patientNumber
+organizationId
+branchId
+status
+registrationDate
+</code></pre>
+<p>This prevents duplicated identity records.</p>
+<hr>
+<h1>40. APPOINTMENT DATA MODEL</h1>
+<pre><code class="language-text">appointmentId
+organizationId
+branchId
+patientId
+providerId
+serviceId
+departmentId
+scheduledStart
+scheduledEnd
+status
+reason
+notes
+</code></pre>
+<p>References:</p>
+<pre><code class="language-text">Patient
+Provider
+Service
+Branch
+</code></pre>
+<hr>
+<h1>41. QUEUE DATA MODEL</h1>
+<pre><code class="language-text">queueEntryId
+organizationId
+branchId
+patientId
+appointmentId
+encounterId
+providerId
+serviceId
+queueType
+position
+status
+calledAt
+startedAt
+completedAt
+</code></pre>
+<p>Queue is operational state, not the permanent clinical record.</p>
+<hr>
+<h1>42. ENCOUNTER DATA MODEL</h1>
+<pre><code class="language-text">encounterId
+organizationId
+branchId
+patientId
+providerId
+serviceId
+appointmentId
+encounterType
+status
+workflowInstanceId
+startedAt
+completedAt
+</code></pre>
+<p>Encounter is the generic healthcare interaction.</p>
+<p>Supported V1-compatible types:</p>
+<pre><code class="language-text">consultation
+procedure
+lab
+follow-up
+emergency
+admission
+</code></pre>
+<p>The source explicitly requires a generic encounter engine for future IPD/emergency/OT expansion.</p>
+<hr>
+<h1>43. CLINICAL RECORD</h1>
+<p>Core clinical record:</p>
+<pre><code class="language-text">clinicalRecordId
+encounterId
+patientId
+providerId
+complaint
+observation
+diagnosis
+treatment
+prescription
+notes
+</code></pre>
+<p>Specialty-specific information:</p>
+<pre><code class="language-text">dynamic form submission
+</code></pre>
+<p>Therefore:</p>
+<pre><code class="language-text">Dental
+Eye
+Skin
+General
+Specialty
+</code></pre>
+<p>do not require separate core clinical architectures.</p>
+<p>Source explicitly requires this generic clinical structure.</p>
+<hr>
+<h1>44. TREATMENT</h1>
+<pre><code class="language-text">treatmentId
+encounterId
+patientId
+serviceId
+providerId
+status
+notes
+formSubmissionId
+</code></pre>
+<p>Treatment may reference billable service.</p>
+<hr>
+<h1>45. PRESCRIPTION</h1>
+<pre><code class="language-text">prescriptionId
+encounterId
+patientId
+providerId
+status
+items[]
+</code></pre>
+<p>Each item:</p>
+<pre><code class="language-text">medicineReference
+dose
+frequency
+duration
+instructions
+</code></pre>
+<p>V2 Pharmacy can later consume this prescription without creating a second prescription system.</p>
+<hr>
+<h1>46. TRANSACTION ENGINE</h1>
+<p>Financial system remains separate from clinical system.</p>
+<p>Core collections:</p>
+<pre><code class="language-text">invoices
+invoiceItems
+payments
+paymentAllocations
+refunds
+adjustments
+ledgerEntries
+receipts
+</code></pre>
+<p>Source explicitly requires this separation.</p>
+<hr>
+<h1>47. INVOICE</h1>
+<pre><code class="language-text">invoiceId
+organizationId
+branchId
+patientId
+encounterId
+currency
+status
+subtotal
+discount
+tax
+total
+paidAmount
+balance
+issuedAt
+</code></pre>
+<hr>
+<h1>48. INVOICE ITEM</h1>
+<pre><code class="language-text">invoiceItemId
+invoiceId
+serviceId
+description
+quantity
+unitPrice
+discount
+tax
+total
+sourceEntityType
+sourceEntityId
+</code></pre>
+<p>This allows:</p>
+<pre><code class="language-text">Treatment → Invoice Item
+Service → Invoice Item
+Future Lab → Invoice Item
+Future IPD → Invoice Item
+</code></pre>
+<p>without changing invoice architecture.</p>
+<hr>
+<h1>49. PAYMENT</h1>
+<pre><code class="language-text">paymentId
+organizationId
+branchId
+patientId
+invoiceId
+amount
+currency
+method
+status
+reference
+receivedAt
+verifiedAt
+verifiedBy
+</code></pre>
+<p>Methods:</p>
+<pre><code class="language-text">cash
+upi
+card
+bank_transfer
+online_gateway
+other
+</code></pre>
+<hr>
+<h1>50. PAYMENT ALLOCATION</h1>
+<p>Do not assume:</p>
+<pre><code class="language-text">1 Payment = 1 Invoice
+</code></pre>
+<p>Instead:</p>
+<pre><code class="language-text">Payment
+   ↓
+PaymentAllocation
+   ↓
+Invoice
+</code></pre>
+<p>This supports:</p>
+<pre><code class="language-text">partial payment
+multiple invoices
+advance payment
+split allocation
+</code></pre>
+<p>and future corporate/insurance payments.</p>
+<hr>
+<h1>51. RECEIPT</h1>
+<pre><code class="language-text">receiptId
+paymentId
+invoiceId
+patientId
+receiptNumber
+amount
+method
+issuedAt
+</code></pre>
+<p>Receipt should be generated from confirmed payment.</p>
+<hr>
+<h1>52. REFUND</h1>
+<p>Refund must reference original payment:</p>
+<pre><code class="language-text">refundId
+paymentId
+amount
+reason
+status
+approvedBy
+processedAt
+</code></pre>
+<p>Never edit the original payment amount to simulate a refund.</p>
+<hr>
+<h1>53. LEDGER FOUNDATION</h1>
+<p>V1 does not become a full accounting system.</p>
+<p>But financial movements should have a ledger foundation:</p>
+<pre><code class="language-text">ledgerEntryId
+organizationId
+branchId
+transactionType
+referenceType
+referenceId
+amount
+currency
+direction
+createdAt
+</code></pre>
+<p>Future accounting can consume it.</p>
+<hr>
+<h1>54. DOCUMENT ENGINE</h1>
+<p>Collections:</p>
+<pre><code class="language-text">documents
+documentVersions
+documentLinks
+documentPermissions
+</code></pre>
+<p>Source defines this generic structure.</p>
+<hr>
+<h1>55. DOCUMENT LINK</h1>
+<p>A document can attach to:</p>
+<pre><code class="language-text">Patient
+Encounter
+Treatment
+Invoice
+Payment
+Consent
+Future Lab Result
+Future IPD Record
+</code></pre>
+<p>Use generic:</p>
+<pre><code class="language-text">entityType
+entityId
+</code></pre>
+<p>plus tenant scope.</p>
+<hr>
+<h1>56. DOCUMENT VERSIONING</h1>
+<p>Never replace a historical document invisibly.</p>
+<pre><code class="language-text">Document
+ ↓
+Version 1
+Version 2
+Version 3
+</code></pre>
+<p>Each version records:</p>
+<pre><code class="language-text">uploadedBy
+uploadedAt
+storageReference
+checksum
+</code></pre>
+<hr>
+<h1>57. NOTIFICATION ENGINE</h1>
+<p>Collections:</p>
+<pre><code class="language-text">notifications
+notificationTemplates
+notificationChannels
+notificationEvents
+</code></pre>
+<p>Channels:</p>
+<pre><code class="language-text">inApp
+sms
+email
+whatsapp
+</code></pre>
+<p>Source requires this generic architecture so future channels do not require a new notification core.</p>
+<hr>
+<h1>58. EVENT-DRIVEN ARCHITECTURE</h1>
+<p>Every important business action publishes an event.</p>
+<p>Examples:</p>
+<pre><code class="language-text">patient.created.v1
+appointment.created.v1
+appointment.completed.v1
+encounter.created.v1
+encounter.completed.v1
+invoice.created.v1
+payment.received.v1
+payment.verified.v1
+document.uploaded.v1
+workflow.completed.v1
+</code></pre>
+<p>Source explicitly requires an event system for V1.</p>
+<hr>
+<h1>59. EVENT ENVELOPE</h1>
+<p>Every event should contain a standard envelope:</p>
+<pre><code class="language-text">eventId
+eventType
+eventVersion
+occurredAt
+organizationId
+branchId
+actorUserId
+entityType
+entityId
+correlationId
+causationId
+payload
+</code></pre>
+<p>Example:</p>
+<pre><code class="language-text">eventType:
+payment.received.v1
+
+entityType:
+payment
+
+entityId:
+payment_123
+
+correlationId:
+encounter_123
+</code></pre>
+<hr>
+<h1>60. EVENT VERSIONING</h1>
+<p>Never silently change the meaning of an existing event.</p>
+<pre><code class="language-text">payment.received.v1
+</code></pre>
+<p>If breaking change is needed:</p>
+<pre><code class="language-text">payment.received.v2
+</code></pre>
+<p>Old consumers continue working.</p>
+<p>This is explicitly required by the source.</p>
+<hr>
+<h1>61. DOMAIN EVENT FLOW</h1>
+<p>Example payment:</p>
+<pre><code class="language-text">Payment Service
+      ↓
+Payment Saved
+      ↓
+payment.received.v1
+      │
+      ├── Update Invoice
+      ├── Generate Receipt
+      ├── Notification
+      ├── Audit
+      └── Reporting Projection
+</code></pre>
+<p>Future:</p>
+<pre><code class="language-text">      ├── Accounting
+      ├── Insurance
+      └── Corporate Billing
+</code></pre>
+<p>can subscribe without changing Payment core.</p>
+<hr>
+<h1>62. EVENT RELIABILITY</h1>
+<p>Business transaction and event publication must not create inconsistent state.</p>
+<p>Use an event/outbox mechanism conceptually:</p>
+<pre><code class="language-text">Business Change
+      +
+Event Record
+      ↓
+Committed
+      ↓
+Event Dispatcher
+      ↓
+Consumers
+</code></pre>
+<p>This prevents:</p>
+<pre><code class="language-text">Payment saved
+but
+payment event lost
+</code></pre>
+<hr>
+<h1>63. AUDIT ENGINE</h1>
+<p>All important entities include:</p>
+<pre><code class="language-text">createdAt
+createdBy
+updatedAt
+updatedBy
+version
+</code></pre>
+<p>Separate:</p>
+<pre><code class="language-text">auditLogs
+</code></pre>
+<p>Source explicitly defines these audit fields and separate AuditLog.</p>
+<hr>
+<h1>64. AUDIT LOG</h1>
+<pre><code class="language-text">auditLogId
+organizationId
+branchId
+actorUserId
+action
+entityType
+entityId
+before
+after
+reason
+timestamp
+ip
+deviceId
+correlationId
+</code></pre>
+<p>Examples:</p>
+<pre><code class="language-text">invoice.updated
+payment.verified
+patient.archived
+role.permission.changed
+form.published
+workflow.published
+</code></pre>
+<hr>
+<h1>65. AUDIT IMMUTABILITY</h1>
+<p>Audit logs must not be editable through normal application APIs.</p>
+<p>No:</p>
+<pre><code class="language-text">Edit Audit
+Delete Audit
+</code></pre>
+<p>except controlled retention processes.</p>
+<hr>
+<h1>66. OPTIMISTIC CONCURRENCY</h1>
+<p>Every mutable core record contains:</p>
+<pre><code class="language-text">version
+</code></pre>
+<p>Update concept:</p>
+<pre><code class="language-text">Update where:
+id = X
+AND
+version = 4
+
+then:
+
+version = 5
+</code></pre>
+<p>If current version is already 5:</p>
+<pre><code class="language-text">409 Conflict
+</code></pre>
+<p>This prevents silent overwrites.</p>
+<hr>
+<h1>67. STATUS ENGINE</h1>
+<p>Do not hard-code status strings only in React.</p>
+<p>Generic status support:</p>
+<pre><code class="language-text">Draft
+Active
+Pending
+Approved
+Rejected
+Completed
+Cancelled
+Archived
+</code></pre>
+<p>Business-specific workflows may define additional states.</p>
+<hr>
+<h1>68. SOFT DELETE / ARCHIVE</h1>
+<p>Healthcare records should not be physically deleted casually.</p>
+<p>Use:</p>
+<pre><code class="language-text">status
+deletedAt
+deletedBy
+archiveReason
+</code></pre>
+<p>or equivalent archival fields.</p>
+<p>Source specifically defines active/archived/deleted metadata and policy-based retention.</p>
+<hr>
+<h1>69. DATABASE DESIGN PRINCIPLE</h1>
+<p>Every major tenant-owned entity should have appropriate versions of:</p>
+<pre><code class="language-text">id
+organizationId
+branchId
+status
+createdAt
+createdBy
+updatedAt
+updatedBy
+version
+metadata
+</code></pre>
+<p>BUT:</p>
+<blockquote>
+<p>Do not blindly duplicate every field into every collection.</p>
+</blockquote>
+<p>Entity-specific design remains proper and structured.</p>
+<p><code>metadata</code> is only limited extensibility.</p>
+<p>The source explicitly rejects making the entire system an uncontrolled JSON dump.</p>
+<hr>
+<h1>70. MONGODB COLLECTION GROUPS</h1>
+<h2>Identity</h2>
+<pre><code class="language-text">organizations
+branches
+departments
+units
+resources
+persons
+users
+providers
+</code></pre>
+<h2>Authorization</h2>
+<pre><code class="language-text">roles
+permissions
+userRoles
+rolePermissions
+</code></pre>
+<h2>Configuration</h2>
+<pre><code class="language-text">configurations
+moduleConfigs
+featureFlags
+</code></pre>
+<h2>Dynamic Engine</h2>
+<pre><code class="language-text">forms
+formVersions
+formSections
+formFields
+fieldOptions
+fieldValidations
+formSubmissions
+formValues
+
+workflows
+workflowVersions
+workflowSteps
+workflowTransitions
+workflowConditions
+workflowActions
+workflowInstances
+</code></pre>
+<h2>Healthcare</h2>
+<pre><code class="language-text">patients
+appointments
+queueEntries
+encounters
+clinicalRecords
+treatments
+prescriptions
+followups
+</code></pre>
+<h2>Financial</h2>
+<pre><code class="language-text">services
+serviceVersions
+invoices
+invoiceItems
+payments
+paymentAllocations
+receipts
+refunds
+adjustments
+ledgerEntries
+</code></pre>
+<h2>Documents</h2>
+<pre><code class="language-text">documents
+documentVersions
+documentLinks
+documentPermissions
+</code></pre>
+<h2>Communication</h2>
+<pre><code class="language-text">notifications
+notificationTemplates
+notificationChannels
+</code></pre>
+<h2>Platform</h2>
+<pre><code class="language-text">auditLogs
+events
+outboxEvents
+syncOperations
+importJobs
+exportJobs
+</code></pre>
+<hr>
+<h1>71. INDEXING STRATEGY</h1>
+<p>Critical indexes must include tenant scope.</p>
+<p>Examples:</p>
+<pre><code class="language-text">patients:
+organizationId + patientNumber
+
+patients:
+organizationId + phone
+
+appointments:
+organizationId + branchId + scheduledStart
+
+appointments:
+organizationId + providerId + scheduledStart
+
+encounters:
+organizationId + patientId + createdAt
+
+invoices:
+organizationId + patientId + status
+
+payments:
+organizationId + invoiceId + status
+
+auditLogs:
+organizationId + entityType + entityId
+</code></pre>
+<p>Unique indexes must be scoped appropriately.</p>
+<hr>
+<h1>72. DATA RELATIONSHIP GRAPH</h1>
+<pre><code class="language-text">Organization
+   │
+   ├── Branch
+   │
+   ├── Users
+   │
+   ├── Services
+   │
+   └── Patients
+          │
+          ├── Appointments
+          │       │
+          │       └── Encounter
+          │
+          └── Encounters
+                  │
+                  ├── Clinical Records
+                  ├── Treatment
+                  ├── Prescription
+                  ├── Documents
+                  └── Invoice
+                           │
+                           └── Payment
+                                  │
+                                  └── Receipt
+</code></pre>
+<hr>
+<h1>73. APPOINTMENT → ENCOUNTER</h1>
+<p>When check-in happens:</p>
+<pre><code class="language-text">Appointment
+      ↓
+Encounter created
+      ↓
+Queue Entry created
+</code></pre>
+<p>Appointment remains appointment history.</p>
+<p>Encounter is separate clinical interaction.</p>
+<hr>
+<h1>74. WALK-IN → ENCOUNTER</h1>
+<pre><code class="language-text">Patient
+ ↓
+Walk-in
+ ↓
+Service
+ ↓
+Encounter
+ ↓
+Queue
+</code></pre>
+<p>No fake appointment is required.</p>
+<hr>
+<h1>75. QUEUE → CLINICAL</h1>
+<pre><code class="language-text">Queue Entry
+ ↓
+Start Consultation
+ ↓
+Encounter
+ ↓
+Clinical Workspace
+</code></pre>
+<p>Queue state and clinical state remain distinct.</p>
+<hr>
+<h1>76. CLINICAL → BILLING</h1>
+<pre><code class="language-text">Encounter
+ ↓
+Treatment
+ ↓
+Service
+ ↓
+Invoice Item
+ ↓
+Invoice
+</code></pre>
+<p>Clinical update must not mutate an already-settled financial transaction automatically.</p>
+<hr>
+<h1>77. PAYMENT → RECEIPT</h1>
+<pre><code class="language-text">Payment
+ ↓
+Verification
+ ↓
+Allocation
+ ↓
+Receipt
+ ↓
+Event
+ ↓
+Notification
+</code></pre>
+<hr>
+<h1>78. ONLINE PAYMENT</h1>
+<pre><code class="language-text">Frontend
+ ↓
+Create Payment Intent
+ ↓
+Gateway
+ ↓
+Gateway Callback/Webhook
+ ↓
+Verify
+ ↓
+Payment
+ ↓
+Allocation
+ ↓
+Receipt
+</code></pre>
+<p>Do not mark payment as successful based solely on frontend callback.</p>
+<hr>
+<h1>79. OFFLINE PAYMENT</h1>
+<pre><code class="language-text">Manual Payment
+ ↓
+Reference / Screenshot
+ ↓
+Pending Verification
+ ↓
+Authorized User
+ ↓
+Verify
+ ↓
+Payment Confirmed
+ ↓
+Receipt
+</code></pre>
+<hr>
+<h1>80. OFFLINE-FIRST FOUNDATION</h1>
+<p>V1 must have local persistence and synchronization foundation.</p>
+<pre><code class="language-text">React App
+   ↓
+Local Store
+   ↓
+Sync Queue
+   ↓
+API
+   ↓
+Server
+</code></pre>
+<p>Source explicitly defines this local database → sync queue → server architecture.</p>
+<hr>
+<h1>81. SYNC OPERATION</h1>
+<p>Every mutation gets:</p>
+<pre><code class="language-text">operationId
+entityId
+entityVersion
+timestamp
+deviceId
+userId
+operationType
+</code></pre>
+<p>as required by the source.</p>
+<p>Additional recommended context:</p>
+<pre><code class="language-text">organizationId
+branchId
+payload
+correlationId
+</code></pre>
+<hr>
+<h1>82. IDEMPOTENCY</h1>
+<p>If:</p>
+<pre><code class="language-text">operationId = OP123
+</code></pre>
+<p>is received twice:</p>
+<pre><code class="language-text">First request → process
+Second request → return existing result
+</code></pre>
+<p>Never create:</p>
+<pre><code class="language-text">2 payments
+2 invoices
+2 patients
+</code></pre>
+<p>from the same operation.</p>
+<hr>
+<h1>83. SYNC STATES</h1>
+<p>Local operation:</p>
+<pre><code class="language-text">pending
+</code></pre>
+<p>Then:</p>
+<pre><code class="language-text">syncing
+</code></pre>
+<p>Then:</p>
+<pre><code class="language-text">synced
+</code></pre>
+<p>or:</p>
+<pre><code class="language-text">conflict
+failed
+</code></pre>
+<hr>
+<h1>84. CONFLICT ENGINE</h1>
+<p>Possible policies:</p>
+<pre><code class="language-text">last-write
+server-wins
+user-resolution
+field-level-merge
+</code></pre>
+<p>Policy is entity-specific.</p>
+<p>The source explicitly identifies these conflict strategies.</p>
+<hr>
+<h1>85. SYNC CONFLICT EXAMPLE</h1>
+<p>Device A:</p>
+<pre><code class="language-text">Patient address = A
+version = 4
+</code></pre>
+<p>Device B:</p>
+<pre><code class="language-text">Patient address = B
+version = 4
+</code></pre>
+<p>Server receives A:</p>
+<pre><code class="language-text">version 4 → 5
+</code></pre>
+<p>Then B:</p>
+<pre><code class="language-text">expected version = 4
+server version = 5
+</code></pre>
+<p>Result:</p>
+<pre><code class="language-text">Conflict
+</code></pre>
+<p>Do not silently overwrite.</p>
+<hr>
+<h1>86. API ARCHITECTURE</h1>
+<p>Base:</p>
+<pre><code class="language-text">/api/v1
+</code></pre>
+<p>Modules:</p>
+<pre><code class="language-text">/api/v1/auth
+/api/v1/organizations
+/api/v1/users
+/api/v1/roles
+/api/v1/permissions
+/api/v1/patients
+/api/v1/appointments
+/api/v1/queue
+/api/v1/encounters
+/api/v1/clinical
+/api/v1/services
+/api/v1/billing
+/api/v1/payments
+/api/v1/documents
+/api/v1/followups
+/api/v1/notifications
+/api/v1/reports
+/api/v1/forms
+/api/v1/workflows
+/api/v1/audit
+/api/v1/sync
+</code></pre>
+<hr>
+<h1>87. API VERSIONING</h1>
+<p>V1:</p>
+<pre><code class="language-text">/api/v1/...
+</code></pre>
+<p>Future:</p>
+<pre><code class="language-text">/api/v2/...
+</code></pre>
+<p>Old APIs must not suddenly break.</p>
+<p>Lifecycle:</p>
+<pre><code class="language-text">Active
+ ↓
+Deprecated
+ ↓
+Retired
+</code></pre>
+<p>This is explicitly part of the V1/V2 compatibility architecture.</p>
+<hr>
+<h1>88. STANDARD API RESPONSE</h1>
+<p>Success:</p>
+<pre><code class="language-text">{
+  "success": true,
+  "data": {},
+  "meta": {}
+}
+</code></pre>
+<p>Error:</p>
+<pre><code class="language-text">{
+  "success": false,
+  "error": {
+    "code": "...",
+    "message": "...",
+    "details": {}
+  }
+}
+</code></pre>
+<p>Never expose internal stack traces to users.</p>
+<hr>
+<h1>89. STANDARD ERROR CODES</h1>
+<p>Examples:</p>
+<pre><code class="language-text">AUTH_REQUIRED
+FORBIDDEN
+NOT_FOUND
+VALIDATION_ERROR
+CONFLICT
+DUPLICATE_OPERATION
+INVALID_STATE_TRANSITION
+FEATURE_DISABLED
+TENANT_SCOPE_ERROR
+VERSION_CONFLICT
+PAYMENT_VERIFICATION_REQUIRED
+</code></pre>
+<p>V2/V3 should reuse these conventions.</p>
+<hr>
+<h1>90. CONTROLLER RULE</h1>
+<p>Controllers should NOT contain:</p>
+<pre><code class="language-text">billing calculations
+workflow rules
+permission business rules
+patient logic
+payment allocation logic
+</code></pre>
+<p>Controller:</p>
+<pre><code class="language-text">Request
+ ↓
+Validate
+ ↓
+Call Application Service
+ ↓
+Return Response
+</code></pre>
+<hr>
+<h1>91. APPLICATION SERVICE RULE</h1>
+<p>Example:</p>
+<pre><code class="language-text">CreateAppointmentService
+</code></pre>
+<p>does:</p>
+<pre><code class="language-text">permission
+validation
+availability
+appointment creation
+workflow start
+event publish
+audit
+</code></pre>
+<p>but does not contain raw HTTP details.</p>
+<hr>
+<h1>92. REPOSITORY RULE</h1>
+<p>Repository handles:</p>
+<pre><code class="language-text">MongoDB persistence
+queries
+indexes
+pagination
+transactions
+</code></pre>
+<p>It does not decide:</p>
+<pre><code class="language-text">whether a patient may be archived
+</code></pre>
+<p>That belongs to domain/application logic.</p>
+<hr>
+<h1>93. TRANSACTION BOUNDARIES</h1>
+<p>MongoDB transaction should be used where multiple writes must be atomic.</p>
+<p>Example payment confirmation:</p>
+<pre><code class="language-text">Payment
++
+Allocation
++
+Invoice balance
++
+Receipt
++
+Outbox event
+</code></pre>
+<p>should have a carefully defined consistency boundary.</p>
+<p>Do not use database transactions for every read/write unnecessarily.</p>
+<hr>
+<h1>94. EVENT VS DIRECT CALL</h1>
+<p>Use direct service call when:</p>
+<pre><code class="language-text">operation must immediately complete
+</code></pre>
+<p>Use event when:</p>
+<pre><code class="language-text">other modules need to react
+</code></pre>
+<p>Example:</p>
+<pre><code class="language-text">Payment Service
+</code></pre>
+<p>directly updates invoice.</p>
+<p>Then publishes:</p>
+<pre><code class="language-text">payment.received.v1
+</code></pre>
+<p>Notifications/reporting/integrations react asynchronously.</p>
+<hr>
+<h1>95. DYNAMIC DASHBOARD ARCHITECTURE</h1>
+<p>Dashboard configuration:</p>
+<pre><code class="language-text">dashboardConfigs
+dashboardWidgets
+dashboardLayouts
+</code></pre>
+<p>Widget:</p>
+<pre><code class="language-text">widgetKey
+title
+queryKey
+permission
+visibilityRule
+position
+</code></pre>
+<p>Example:</p>
+<pre><code class="language-text">todayAppointments
+todayQueue
+pendingPayments
+revenue
+</code></pre>
+<p>No hard-coded dashboard layout per role.</p>
+<hr>
+<h1>96. REPORT ARCHITECTURE</h1>
+<p>Reports should consume controlled query services.</p>
+<p>Do not allow arbitrary MongoDB queries from frontend.</p>
+<pre><code class="language-text">Report Definition
+ ↓
+Permission
+ ↓
+Filters
+ ↓
+Query Service
+ ↓
+Result
+</code></pre>
+<hr>
+<h1>97. IMPORT ARCHITECTURE</h1>
+<pre><code class="language-text">Upload
+ ↓
+Create Import Job
+ ↓
+Parse
+ ↓
+Map Fields
+ ↓
+Validate
+ ↓
+Preview
+ ↓
+Confirm
+ ↓
+Process
+ ↓
+Audit
+</code></pre>
+<p>Import jobs should be resumable/retriable.</p>
+<hr>
+<h1>98. EXPORT ARCHITECTURE</h1>
+<pre><code class="language-text">Export Request
+ ↓
+Permission
+ ↓
+Filters
+ ↓
+Export Job
+ ↓
+Generate
+ ↓
+Store File
+ ↓
+Audit
+ ↓
+Download
+</code></pre>
+<p>Large exports should not block API requests.</p>
+<hr>
+<h1>99. FILE STORAGE</h1>
+<p>Files should NOT be stored directly as giant binary data inside normal MongoDB business documents.</p>
+<p>Use:</p>
+<pre><code class="language-text">Document Metadata
++
+Object/File Storage
+</code></pre>
+<p>MongoDB stores:</p>
+<pre><code class="language-text">documentId
+storageKey
+mimeType
+size
+checksum
+</code></pre>
+<p>The application uses the document engine to control access.</p>
+<hr>
+<h1>100. SECURITY</h1>
+<p>Minimum architecture:</p>
+<pre><code class="language-text">HTTPS
+Password hashing
+Authentication
+RBAC
+Tenant isolation
+Branch scope
+Input validation
+Output filtering
+Rate limiting
+Secure headers
+Audit logging
+File access control
+Secret management
+</code></pre>
+<hr>
+<h1>101. HEALTHCARE DATA SECURITY RULE</h1>
+<p>Sensitive clinical data must not accidentally appear in:</p>
+<pre><code class="language-text">logs
+analytics
+error messages
+frontend debug logs
+URLs
+</code></pre>
+<p>Use controlled logging.</p>
+<hr>
+<h1>102. LOGGING</h1>
+<p>Application logs:</p>
+<pre><code class="language-text">requestId
+correlationId
+organizationId
+userId
+route
+duration
+status
+errorCode
+</code></pre>
+<p>Do NOT log:</p>
+<pre><code class="language-text">password
+tokens
+full clinical notes
+payment secrets
+private document contents
+</code></pre>
+<hr>
+<h1>103. OBSERVABILITY</h1>
+<p>V1 must have:</p>
+<pre><code class="language-text">Application logs
+API logs
+Audit logs
+Sync logs
+Error tracking
+Performance metrics
+Health checks
+</code></pre>
+<p>This is explicitly required from V1 so future debugging does not become difficult.</p>
+<hr>
+<h1>104. HEALTH CHECKS</h1>
+<p>At minimum:</p>
+<pre><code class="language-text">/api/health
+/api/ready
+</code></pre>
+<p>Check:</p>
+<pre><code class="language-text">API
+Database
+Required dependencies
+</code></pre>
+<hr>
+<h1>105. CORRELATION ID</h1>
+<p>Every important request gets:</p>
+<pre><code class="language-text">correlationId
+</code></pre>
+<p>That ID should travel through:</p>
+<pre><code class="language-text">API
+Application Service
+Database/audit context
+Event
+Notification
+Logs
+</code></pre>
+<p>This makes an entire patient/payment operation traceable.</p>
+<hr>
+<h1>106. VERSIONING ARCHITECTURE</h1>
+<p>Version:</p>
+<pre><code class="language-text">API
+Events
+Forms
+Workflows
+Configurations
+Services
+Price Lists
+Documents
+</code></pre>
+<p>Source explicitly requires configuration and workflow versioning so changes do not corrupt historical records.</p>
+<hr>
+<h1>107. HISTORICAL IMMUTABILITY</h1>
+<p>If:</p>
+<pre><code class="language-text">Workflow v1
+</code></pre>
+<p>was used for:</p>
+<pre><code class="language-text">Encounter 100
+</code></pre>
+<p>and later:</p>
+<pre><code class="language-text">Workflow v2
+</code></pre>
+<p>is published:</p>
+<pre><code class="language-text">Encounter 100 → still v1
+New Encounter → v2
+</code></pre>
+<p>Same rule for forms and price configurations.</p>
+<hr>
+<h1>108. V2 MODULE CONTRACT</h1>
+<p>V2 modules must consume:</p>
+<pre><code class="language-text">Organization
+User
+Role
+Permission
+Patient
+Provider
+Encounter
+Service
+Workflow
+Form
+Transaction
+Document
+Event
+Audit
+</code></pre>
+<p>V2 must NOT create:</p>
+<pre><code class="language-text">V2Patient
+V2User
+V2Billing
+V2Document
+</code></pre>
+<hr>
+<h1>109. V2 EXAMPLE</h1>
+<p>Future IPD:</p>
+<pre><code class="language-text">IPD
+ ↓
+Patient
+ ↓
+Encounter
+ ↓
+Admission
+ ↓
+Room/Bed
+ ↓
+Services
+ ↓
+Transactions
+ ↓
+Documents
+ ↓
+Events
+</code></pre>
+<p>Patient remains the V1 patient.</p>
+<p>Billing remains the same transaction engine.</p>
+<hr>
+<h1>110. V2 PHARMACY</h1>
+<p>Future Pharmacy:</p>
+<pre><code class="language-text">Prescription
+ ↓
+Pharmacy
+ ↓
+Inventory
+ ↓
+Dispense
+ ↓
+Transaction
+</code></pre>
+<p>Prescription already exists in V1.</p>
+<p>No duplicate prescription architecture.</p>
+<hr>
+<h1>111. V2 LAB</h1>
+<p>Future Lab:</p>
+<pre><code class="language-text">Service
+ ↓
+Encounter
+ ↓
+Lab Order
+ ↓
+Lab Result
+ ↓
+Document
+ ↓
+Notification
+</code></pre>
+<p>The Lab module references existing patient, encounter, service and document systems.</p>
+<hr>
+<h1>112. V3 INTEGRATION</h1>
+<p>Future V3:</p>
+<pre><code class="language-text">AI
+Analytics
+Enterprise
+Accounting
+Interoperability
+</code></pre>
+<p>must consume:</p>
+<pre><code class="language-text">Events
+APIs
+Core Entities
+Audit
+Reports
+</code></pre>
+<p>rather than modifying V1 core logic unnecessarily.</p>
+<hr>
+<h1>113. API CONTRACT RULE FOR FUTURE MODULES</h1>
+<p>Every new module must expose:</p>
+<pre><code class="language-text">Routes
+Application Services
+Domain Models
+Events
+Permissions
+Audit Actions
+Configuration
+Feature Flag
+</code></pre>
+<p>Example V2:</p>
+<pre><code class="language-text">inventory.view
+inventory.create
+inventory.adjust
+inventory.approve
+</code></pre>
+<p>No core permission rewrite.</p>
+<hr>
+<h1>114. MIGRATION CONTRACT</h1>
+<p>Never upgrade production by manually changing database structure.</p>
+<p>Every future upgrade must have:</p>
+<pre><code class="language-text">V1 → V2 migration
+V2 → V3 migration
+</code></pre>
+<p>with:</p>
+<pre><code class="language-text">forward migration
+validation
+rollback strategy where feasible
+data compatibility checks
+migration tests
+</code></pre>
+<p>Source explicitly requires defined migration scripts rather than manual database modification.</p>
+<hr>
+<h1>115. FEATURE DEPLOYMENT CONTRACT</h1>
+<p>A future module can be deployed disabled:</p>
+<pre><code class="language-text">module = deployed
+featureFlag = false
+</code></pre>
+<p>Then:</p>
+<pre><code class="language-text">organization A = ON
+organization B = OFF
+</code></pre>
+<p>This allows staged rollout.</p>
+<hr>
+<h1>116. TESTING ARCHITECTURE</h1>
+<p>V1 must include:</p>
+<pre><code class="language-text">Unit Tests
+Integration Tests
+API Tests
+Workflow Tests
+Permission Tests
+Sync Tests
+Migration Tests
+</code></pre>
+<p>This exact testing direction is part of the source architecture.</p>
+<hr>
+<h1>117. UNIT TESTS</h1>
+<p>Test:</p>
+<pre><code class="language-text">Permission rules
+Invoice calculations
+Payment allocation
+Status transitions
+Workflow conditions
+Form validation
+Version handling
+Conflict rules
+</code></pre>
+<hr>
+<h1>118. INTEGRATION TESTS</h1>
+<p>Test:</p>
+<pre><code class="language-text">Patient → Appointment
+Appointment → Encounter
+Encounter → Queue
+Encounter → Clinical
+Treatment → Invoice
+Payment → Receipt
+Document → Patient
+Follow-up → Appointment
+</code></pre>
+<hr>
+<h1>119. API TESTS</h1>
+<p>Every public API must test:</p>
+<pre><code class="language-text">Authorized
+Unauthorized
+Wrong tenant
+Wrong branch
+Invalid payload
+Duplicate request
+Version conflict
+Feature disabled
+</code></pre>
+<hr>
+<h1>120. WORKFLOW TESTS</h1>
+<p>Test:</p>
+<pre><code class="language-text">valid transition
+invalid transition
+permission failure
+condition failure
+workflow version
+workflow completion
+workflow cancellation
+</code></pre>
+<hr>
+<h1>121. PERMISSION TESTS</h1>
+<p>Example:</p>
+<pre><code class="language-text">Doctor cannot refund payment
+Receptionist cannot edit clinical record
+Billing staff cannot modify diagnosis
+Branch user cannot access another branch
+Organization A user cannot access Organization B
+</code></pre>
+<hr>
+<h1>122. SYNC TESTS</h1>
+<p>Test:</p>
+<pre><code class="language-text">offline create
+offline update
+online sync
+duplicate operation
+failed sync
+retry
+conflict
+server version mismatch
+</code></pre>
+<hr>
+<h1>123. MIGRATION TESTS</h1>
+<p>Before V2:</p>
+<pre><code class="language-text">V1 production dataset
+       ↓
+V2 migration
+       ↓
+Validate
+       ↓
+Run V2 compatibility tests
+</code></pre>
+<p>No migration should be considered complete merely because the script executed successfully.</p>
+<hr>
+<h1>124. DATABASE BACKUP</h1>
+<p>Production must have:</p>
+<pre><code class="language-text">scheduled backups
+retention policy
+restore testing
+backup monitoring
+</code></pre>
+<p>A backup that has never been restored/tested is not considered verified.</p>
+<hr>
+<h1>125. PERFORMANCE ARCHITECTURE</h1>
+<p>Avoid:</p>
+<pre><code class="language-text">large unbounded queries
+N+1 queries
+full collection scans
+giant patient payloads
+giant dashboard payloads
+</code></pre>
+<p>Use:</p>
+<pre><code class="language-text">pagination
+indexes
+projections
+aggregation
+caching where appropriate
+background jobs
+</code></pre>
+<hr>
+<h1>126. PAGINATION CONTRACT</h1>
+<p>List APIs should return:</p>
+<pre><code class="language-text">items
+page
+pageSize
+total
+hasNext
+</code></pre>
+<p>or an equivalent cursor-based contract where appropriate.</p>
+<p>Frontend must never load unlimited patient records.</p>
+<hr>
+<h1>127. SEARCH ARCHITECTURE</h1>
+<p>Search services should be entity-specific:</p>
+<pre><code class="language-text">PatientSearchService
+AppointmentSearchService
+InvoiceSearchService
+</code></pre>
+<p>Search must respect:</p>
+<pre><code class="language-text">tenant
+branch
+permission
+status
+</code></pre>
+<hr>
+<h1>128. CACHE RULE</h1>
+<p>Cache only data that is safe to cache.</p>
+<p>Do not allow stale cache to incorrectly determine:</p>
+<pre><code class="language-text">payment success
+permission
+clinical authorization
+financial balance
+</code></pre>
+<p>Critical state comes from authoritative storage.</p>
+<hr>
+<h1>129. BACKGROUND JOBS</h1>
+<p>Use background processing for:</p>
+<pre><code class="language-text">Notifications
+Reports
+Exports
+Imports
+Document processing
+Event consumers
+Sync processing
+</code></pre>
+<p>Do not block the user's HTTP request unnecessarily.</p>
+<hr>
+<h1>130. SCHEDULER</h1>
+<p>Scheduled jobs may handle:</p>
+<pre><code class="language-text">Follow-up reminders
+Appointment reminders
+Notification retries
+Pending payment checks
+Report generation
+Cleanup according to retention policy
+</code></pre>
+<hr>
+<h1>131. FRONTEND ARCHITECTURE</h1>
+<p>React structure:</p>
+<pre><code class="language-text">src/
+├── app/
+├── routes/
+├── layouts/
+├── components/
+├── features/
+│   ├── patients/
+│   ├── appointments/
+│   ├── queue/
+│   ├── clinical/
+│   ├── billing/
+│   ├── documents/
+│   ├── reports/
+│   └── administration/
+├── forms/
+├── workflow/
+├── permissions/
+├── api/
+├── offline/
+├── state/
+├── hooks/
+├── utils/
+└── types/
+</code></pre>
+<hr>
+<h1>132. FRONTEND ROUTING</h1>
+<p>Routes must map to business screens from Document 1.</p>
+<p>Example:</p>
+<pre><code class="language-text">/dashboard
+
+/patients
+/patients/:patientId
+
+/appointments
+/appointments/:appointmentId
+
+/queue
+
+/clinical/encounters
+/clinical/encounters/:encounterId
+
+/billing/invoices
+/billing/invoices/:invoiceId
+
+/billing/payments
+
+/documents
+/followups
+
+/reports
+
+/admin/organization
+/admin/users
+/admin/roles
+/admin/services
+/admin/forms
+/admin/workflows
+</code></pre>
+<hr>
+<h1>133. ROUTE GUARDS</h1>
+<p>Every protected route evaluates:</p>
+<pre><code class="language-text">Authentication
++
+Permission
++
+Feature Flag
++
+Organization Scope
+</code></pre>
+<hr>
+<h1>134. DYNAMIC UI</h1>
+<p>Frontend must consume configuration APIs.</p>
+<p>For example:</p>
+<pre><code class="language-text">GET /api/v1/forms/dental-examination
+</code></pre>
+<p>returns the published form definition.</p>
+<p>React renders it.</p>
+<p>Do not create:</p>
+<pre><code class="language-text">DentalForm.tsx
+EyeForm.tsx
+SkinForm.tsx
+</code></pre>
+<p>for every configurable specialty unless a truly specialized interaction requires custom UI.</p>
+<hr>
+<h1>135. CUSTOM UI EXTENSION</h1>
+<p>Dynamic form engine handles standard fields.</p>
+<p>Some highly specialized UI may use registered components.</p>
+<p>Example:</p>
+<pre><code class="language-text">fieldType = tooth-chart
+renderer = ToothChartRenderer
+</code></pre>
+<p>The renderer is registered in code, while its presence/configuration is database-driven.</p>
+<p>This keeps the system dynamic without making the entire application arbitrary JSON.</p>
+<hr>
+<h1>136. FRONTEND STATE</h1>
+<p>Separate:</p>
+<pre><code class="language-text">Server State
+UI State
+Form State
+Offline State
+Authentication State
+</code></pre>
+<p>Do not put the entire application into one global store.</p>
+<hr>
+<h1>137. SERVER STATE</h1>
+<p>Use query/cache layer for:</p>
+<pre><code class="language-text">Patients
+Appointments
+Queue
+Invoices
+Reports
+Configuration
+Forms
+Workflows
+</code></pre>
+<p>Invalidate/refetch based on events/mutations.</p>
+<hr>
+<h1>138. OFFLINE FRONTEND</h1>
+<p>Offline-capable operations use:</p>
+<pre><code class="language-text">Local Store
+ ↓
+Optimistic UI where safe
+ ↓
+Sync Queue
+ ↓
+Server
+</code></pre>
+<p>Critical financial actions should not be falsely shown as confirmed until authoritative confirmation exists.</p>
+<hr>
+<h1>139. API → FRONTEND ERROR MAPPING</h1>
+<p>Backend:</p>
+<pre><code class="language-text">VERSION_CONFLICT
+</code></pre>
+<p>Frontend:</p>
+<pre><code class="language-text">This record was changed elsewhere.
+[Refresh]
+[Review Changes]
+</code></pre>
+<p>Backend:</p>
+<pre><code class="language-text">FORBIDDEN
+</code></pre>
+<p>Frontend:</p>
+<pre><code class="language-text">You do not have permission to perform this action.
+</code></pre>
+<hr>
+<h1>140. END-TO-END TECHNICAL FLOW</h1>
+<h2>Patient Creation</h2>
+<pre><code class="language-text">React
+ ↓
+POST /patients
+ ↓
+Auth
+ ↓
+Tenant Scope
+ ↓
+Permission
+ ↓
+Patient Service
+ ↓
+Person Repository
+ ↓
+Patient Repository
+ ↓
+Audit
+ ↓
+patient.created.v1
+ ↓
+Response
+</code></pre>
+<hr>
+<h1>141. APPOINTMENT CREATION</h1>
+<pre><code class="language-text">React
+ ↓
+POST /appointments
+ ↓
+Auth
+ ↓
+Permission
+ ↓
+Validate Patient
+ ↓
+Validate Provider
+ ↓
+Validate Service
+ ↓
+Validate Schedule
+ ↓
+Create Appointment
+ ↓
+Start Workflow
+ ↓
+Audit
+ ↓
+appointment.created.v1
+ ↓
+Notification Consumer
+</code></pre>
+<hr>
+<h1>142. CHECK-IN</h1>
+<pre><code class="language-text">POST /appointments/:id/check-in
+ ↓
+Permission
+ ↓
+Validate Appointment
+ ↓
+Create Encounter
+ ↓
+Create Queue Entry
+ ↓
+Update Appointment Status
+ ↓
+Audit
+ ↓
+encounter.created.v1
+</code></pre>
+<hr>
+<h1>143. CONSULTATION</h1>
+<pre><code class="language-text">Queue
+ ↓
+Start
+ ↓
+Encounter
+ ↓
+Resolve Workflow
+ ↓
+Resolve Service
+ ↓
+Resolve Form Version
+ ↓
+Render Clinical Form
+ ↓
+Submit
+ ↓
+Clinical Record
+ ↓
+Treatment
+ ↓
+Prescription
+ ↓
+Audit
+ ↓
+Events
+</code></pre>
+<hr>
+<h1>144. BILLING</h1>
+<pre><code class="language-text">Treatment
+ ↓
+Resolve Service
+ ↓
+Resolve Price Version
+ ↓
+Create Invoice
+ ↓
+Invoice Items
+ ↓
+Audit
+ ↓
+invoice.created.v1
+</code></pre>
+<hr>
+<h1>145. PAYMENT</h1>
+<pre><code class="language-text">Invoice
+ ↓
+Payment Request
+ ↓
+Online / Offline
+ ↓
+Verification
+ ↓
+Payment
+ ↓
+Payment Allocation
+ ↓
+Invoice Balance
+ ↓
+Receipt
+ ↓
+payment.received.v1
+ ↓
+Notification
+ ↓
+Audit
+</code></pre>
+<hr>
+<h1>146. FUTURE V2 CONNECTION EXAMPLE</h1>
+<p>Today:</p>
+<pre><code class="language-text">Payment
+ ↓
+Transaction Engine
+</code></pre>
+<p>V2:</p>
+<pre><code class="language-text">Payment
+ ↓
+Transaction Engine
+ ↓
+Insurance Allocation
+</code></pre>
+<p>V3:</p>
+<pre><code class="language-text">Payment
+ ↓
+Transaction Engine
+ ↓
+Corporate Billing
+ ↓
+Accounting
+</code></pre>
+<p>Core payment does not change.</p>
+<hr>
+<h1>147. ARCHITECTURE FREEZE</h1>
+<p>Before development begins, these must be frozen:</p>
+<pre><code class="language-text">1. Entity / ID strategy
+2. Organization hierarchy
+3. Multi-tenancy
+4. User / Role / Permission
+5. Core domain model
+6. Dynamic Form Model
+7. Dynamic Workflow Model
+8. Service Model
+9. Transaction Model
+10. Document Model
+11. Event Model
+12. Audit Model
+13. Versioning
+14. Offline / Sync
+15. API Contract
+</code></pre>
+<p>These are explicitly identified as the architecture freeze points.</p>
+<hr>
+<h1>148. V1 DEVELOPMENT DEPENDENCY GRAPH</h1>
+<pre><code class="language-text">Identity
+   ↓
+Organization
+   ↓
+User / Role / Permission
+   ↓
+Configuration
+   ↓
+Form Engine
+   ↓
+Workflow Engine
+   ↓
+Service Engine
+   ↓
+Patient
+   ↓
+Appointment
+   ↓
+Queue
+   ↓
+Encounter
+   ↓
+Clinical
+   ↓
+Treatment / Prescription
+   ↓
+Billing
+   ↓
+Payment
+   ↓
+Receipt
+   ↓
+Documents / Follow-up
+   ↓
+Notifications
+   ↓
+Reports
+</code></pre>
+<p>Offline, Audit and Events operate across the entire graph.</p>
+<hr>
+<h1>149. V1 MODULE BOUNDARIES</h1>
+<h2>Core Platform</h2>
+<pre><code class="language-text">Identity
+Organization
+RBAC
+Configuration
+Forms
+Workflows
+Services
+Events
+Audit
+Documents
+Notifications
+</code></pre>
+<h2>Healthcare</h2>
+<pre><code class="language-text">Patient
+Appointment
+Queue
+Encounter
+Clinical
+Treatment
+Prescription
+Follow-up
+</code></pre>
+<h2>Finance</h2>
+<pre><code class="language-text">Invoice
+Payment
+Receipt
+Refund
+Ledger Foundation
+</code></pre>
+<h2>Platform</h2>
+<pre><code class="language-text">Offline
+Sync
+Import
+Export
+Reports
+Monitoring
+</code></pre>
+<hr>
+<h1>150. WHAT V1 MUST NOT DO</h1>
+<p>Do not build full:</p>
+<pre><code class="language-text">IPD
+OT
+Blood Bank
+Ambulance
+Advanced ICU
+Full Insurance/TPA
+Full Pharmacy
+Advanced Procurement
+Advanced Accounting
+Advanced AI
+Advanced Enterprise Analytics
+</code></pre>
+<p>But leave extension contracts.</p>
+<p>This distinction is explicitly defined in the source.</p>
+<hr>
+<h1>151. V2/V3 GOLDEN RULE</h1>
+<p>Same:</p>
+<pre><code class="language-text">ID Strategy
+Organization
+User
+Permission
+Patient Identity
+Service
+Workflow
+Form
+Document
+Events
+Audit
+API
+Errors
+Versioning
+Time/Date
+Currency
+Localization
+Security
+</code></pre>
+<p>This is the compatibility contract.</p>
+<hr>
+<h1>152. V2/V3 MUST BE ADDITIVE</h1>
+<p>Preferred:</p>
+<pre><code class="language-text">V1 Core
+   +
+New Module
+   +
+New Permissions
+   +
+New Forms
+   +
+New Workflows
+   +
+New Events
+   +
+New Collections only where genuinely required
+</code></pre>
+<p>Avoid:</p>
+<pre><code class="language-text">Rewrite V1
+Rename core IDs
+Duplicate patient
+Duplicate billing
+Duplicate user
+Duplicate document
+</code></pre>
+<hr>
+<h1>153. TECHNICAL SOURCE-OF-TRUTH RULE</h1>
+<p>If there is a conflict:</p>
+<pre><code class="language-text">V1_MASTER_PRODUCT_SPEC
+          ↓
+V1_TECHNICAL_ARCHITECTURE
+          ↓
+V1_IMPLEMENTATION_PLAN
+          ↓
+CODE
+</code></pre>
+<p>Implementation must not silently change product behavior.</p>
+<p>If technical impossibility is discovered:</p>
+<pre><code class="language-text">STOP
+ ↓
+Document conflict
+ ↓
+Resolve architecture decision
+ ↓
+Update authoritative document
+ ↓
+Implement
+</code></pre>
+<p>Do not silently improvise.</p>
+<hr>
+<h1>154. FINAL ARCHITECTURE</h1>
+<pre><code class="language-text">                         V1 PLATFORM
+                              │
+        ┌─────────────────────┼──────────────────────┐
+        │                     │                      │
+        ▼                     ▼                      ▼
+   IDENTITY/RBAC       CONFIGURATION           EVENT/AUDIT
+        │                     │                      │
+        ├──────────────┬──────┴──────┬───────────────┤
+        ▼              ▼             ▼               ▼
+      FORMS         WORKFLOWS      SERVICES       DOCUMENTS
+        │              │             │               │
+        └──────────────┼─────────────┼───────────────┘
+                       ▼
+                HEALTHCARE CORE
+                       │
+        ┌──────────────┼──────────────┐
+        ▼              ▼              ▼
+     PATIENT      APPOINTMENT       ENCOUNTER
+                       │              │
+                       ▼              ▼
+                     QUEUE         CLINICAL
+                                      │
+                             ┌────────┼────────┐
+                             ▼        ▼        ▼
+                         TREATMENT PRESCRIPTION
+                             │
+                             ▼
+                         TRANSACTION
+                             │
+                 ┌───────────┼───────────┐
+                 ▼           ▼           ▼
+              INVOICE     PAYMENT      RECEIPT
+                 │           │
+                 └───────────┘
+                       │
+                       ▼
+                   FOLLOW-UP
+                       │
+                       ▼
+                 NOTIFICATIONS
+                       │
+                       ▼
+                    REPORTS
+
+                       │
+                       ▼
+                OFFLINE / SYNC
+</code></pre>
+<hr>
+<h1>155. FINAL V2/V3 ARCHITECTURE</h1>
+<pre><code class="language-text">                         SHARED CORE
+                             │
+      ┌──────────────┬───────┼────────┬──────────────┐
+      │              │       │        │              │
+      ▼              ▼       ▼        ▼              ▼
+     V1             V2      V3     Integrations    External Apps
+      │              │       │
+      │              │       │
+Clinic Core       IPD      AI
+Dental            Pharmacy Analytics
+Appointment       Lab      Enterprise
+Queue             Inventory Interop
+Clinical          Insurance
+Billing
+</code></pre>
+<p>No core rewrite.</p>
+<hr>
+<h1>156. FINAL ENGINEERING DEFINITION</h1>
+<p>V1 technical architecture is complete when the implementation has:</p>
+<pre><code class="language-text">✓ Stable IDs
+✓ Tenant isolation
+✓ Organization hierarchy
+✓ RBAC
+✓ Configuration engine
+✓ Feature flags
+✓ Dynamic forms
+✓ Form versioning
+✓ Dynamic workflows
+✓ Workflow versioning
+✓ Service engine
+✓ Patient/person model
+✓ Appointment
+✓ Queue
+✓ Encounter
+✓ Clinical records
+✓ Treatment
+✓ Prescription
+✓ Transaction engine
+✓ Invoice
+✓ Payment
+✓ Receipt
+✓ Refund foundation
+✓ Document engine
+✓ Notifications
+✓ Event system
+✓ Audit
+✓ Optimistic concurrency
+✓ Soft delete
+✓ Offline sync foundation
+✓ Idempotency
+✓ Conflict handling
+✓ API versioning
+✓ Event versioning
+✓ Configuration versioning
+✓ Import/export foundation
+✓ Reports foundation
+✓ Observability
+✓ Migration framework
+✓ Automated testing architecture
+✓ V2/V3 extension contracts
+</code></pre>
+<hr>
+<h1>157. DEVELOPMENT ORDER</h1>
+<p>Technical implementation follows this dependency order:</p>
+<pre><code class="language-text">PHASE 1
+Core Architecture
+Database
+IDs
+Organization
+Users
+Roles
+Permissions
+Audit
+API
+Security
+
+        ↓
+
+PHASE 2
+Module Configuration
+Dynamic Forms
+Workflow Engine
+Service Engine
+Dashboard Configuration
+Templates
+Events
+
+        ↓
+
+PHASE 3
+Patients
+Appointments
+Queue
+Encounter
+Consultation
+Clinical
+Treatment
+Prescription
+Documents
+
+        ↓
+
+PHASE 4
+Billing
+Invoice
+Payment
+Receipt
+Refund
+Ledger Foundation
+
+        ↓
+
+PHASE 5
+Notifications
+SMS/Email Foundation
+WhatsApp Architecture
+
+        ↓
+
+PHASE 6
+Offline
+Sync
+Idempotency
+Conflict Handling
+Sync Dashboard
+
+        ↓
+
+PHASE 7
+Reports
+Import/Export
+Backup
+Monitoring
+Security Hardening
+Performance
+Testing
+Deployment
+</code></pre>
+<p>This sequence matches the source's defined V1 development order.</p>
+<hr>
+<h1>158. FINAL V1 TECHNICAL CONTRACT</h1>
+<p>The finished V1 must satisfy:</p>
+<pre><code class="language-text">Frontend
+      ↓
+API
+      ↓
+Application Services
+      ↓
+Domain Services
+      ↓
+Repositories
+      ↓
+MongoDB
+</code></pre>
+<p>with cross-cutting:</p>
+<pre><code class="language-text">Authentication
+Authorization
+Tenant Isolation
+Audit
+Events
+Versioning
+Offline Sync
+Observability
+</code></pre>
+<p>and dynamic engines:</p>
+<pre><code class="language-text">Configuration
+Forms
+Workflows
+Services
+Dashboard
+Notifications
+</code></pre>
+<hr>
+<h1>159. FINAL STATEMENT</h1>
+<p>The V1 is NOT a small temporary system.</p>
+<p>It is:</p>
+<pre><code class="language-text">Dynamic Healthcare Core
+        +
+Real Clinic Operations
+        +
+Financial Core
+        +
+Offline Foundation
+        +
+Extension Architecture
+</code></pre>
+<p>The source defines exactly this as the final V1 technical direction.</p>
+<p>The objective is:</p>
+<pre><code class="language-text">V1 → Production Business
+V2 → New Healthcare Modules
+V3 → Advanced Platform Capabilities
+</code></pre>
+<p>while keeping:</p>
+<pre><code class="language-text">same identity
+same organization
+same patient
+same permissions
+same service engine
+same workflow engine
+same form engine
+same transaction engine
+same document engine
+same events
+same audit
+same API conventions
+</code></pre>
+<p>so future versions are <strong>module additions, not software rewrites</strong>.</p></body></html>

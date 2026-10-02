@@ -1,0 +1,976 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Text To Word</title></head><body><p>Haan bhai. <strong>Ab main isko final structure mein simplify karunga.</strong> Tum bilkul sahi bol rahe ho — har chhoti cheez ko sidebar ka separate section bana denge to software hospital ke liye clean nahi lagega.</p>
+<p>Tumhare V1 source mein actual business flow <strong>Business Setup → User/Role → Patient → Appointment/Walk-in → Queue → Consultation → Dynamic Clinical Record → Treatment/Prescription → Bill → Payment → Receipt → Document → Follow-up → Report</strong> hai.</p>
+<p>Isliye <strong>final V1 sidebar mein sirf bade operational areas rahenge</strong>. Baaki cheezein unke andar, patient profile, action menus, ya Administration ke andar jayengi.</p>
+<h1>V1 FINAL UI / SIDEBAR MASTER</h1>
+<h2>Main Sidebar — ONLY 8 PRIMARY SECTIONS</h2>
+<pre><code class="language-text">┌──────────────────────────────┐
+│ LOGO / ORGANIZATION          │
+│ Branch ▼                     │
+├──────────────────────────────┤
+│                              │
+│ 1. Dashboard                 │
+│ 2. Patients                  │
+│ 3. Appointments              │
+│ 4. Queue                     │
+│ 5. Clinical                  │
+│ 6. Billing &amp; Payments        │
+│ 7. Documents &amp; Follow-ups    │
+│ 8. Reports                   │
+│                              │
+├──────────────────────────────┤
+│ Administration               │
+│ Settings                     │
+└──────────────────────────────┘</code></pre>
+<p><strong>Bas.</strong></p>
+<p>Lekin <code>Administration</code> normal daily-operation section nahi hai. Ye owner/admin ka configuration area hai.</p>
+<p>Aur <code>Settings</code> mein personal/system preferences rahengi.</p>
+<hr>
+<h1>1. DASHBOARD</h1>
+<p>Dashboard <strong>role + permission + organization configuration</strong> ke hisaab se dynamically change hoga. Source mein bhi dashboard ko role, permission aur configuration driven define kiya gaya hai.</p>
+<h3>Dashboard ke andar:</h3>
+<pre><code class="language-text">Dashboard
+│
+├── KPI Cards
+├── Today's Appointments
+├── Today's Queue
+├── Pending Payments
+├── Outstanding Bills
+├── Recent Patients
+├── Follow-ups
+├── Recent Activity
+└── Quick Actions</code></pre>
+<h3>Quick Actions</h3>
+<p>Role ke according:</p>
+<pre><code class="language-text">+ New Patient
++ Appointment
++ Walk-in
++ Check-in
++ New Encounter
++ Invoice
++ Payment</code></pre>
+<p>Doctor ko:</p>
+<pre><code class="language-text">My Queue
+My Appointments
+Pending Clinical Records</code></pre>
+<p>Receptionist ko:</p>
+<pre><code class="language-text">New Patient
+Appointment
+Check-in
+Walk-in
+Payment</code></pre>
+<p>Admin ko:</p>
+<pre><code class="language-text">Business Overview
+Revenue
+Users
+Configuration</code></pre>
+<h3>Dashboard widgets bhi configurable</h3>
+<p>Admin future mein:</p>
+<pre><code class="language-text">Dashboard
+→ Add Widget
+→ Select Widget
+→ Configure
+→ Assign Role
+→ Save</code></pre>
+<p>Isliye dashboard bhi hard-coded nahi hoga.</p>
+<hr>
+<h1>2. PATIENTS</h1>
+<p>Ye <strong>major independent section</strong> rahega.</p>
+<pre><code class="language-text">Patients</code></pre>
+<h3>Main screen</h3>
+<pre><code class="language-text">Patients
+
+[+ New Patient] [Walk-in]
+
+Search
+Filters
+
+Patient ID | Name | Phone | Last Visit | Balance | Status</code></pre>
+<p>Har row:</p>
+<pre><code class="language-text">View
+Edit
+More ⋮</code></pre>
+<p>More:</p>
+<pre><code class="language-text">Book Appointment
+Walk-in
+New Encounter
+Create Bill
+Receive Payment
+Upload Document
+Follow-up
+Archive</code></pre>
+<hr>
+<h2>Patient Profile = Main Patient Hub</h2>
+<p>Yahan <strong>10 alag sidebar modules nahi kholne hain</strong>.</p>
+<p>Patient profile ke andar tabs:</p>
+<pre><code class="language-text">Patient
+│
+├── Overview
+├── Appointments
+├── Encounters
+├── Clinical
+├── Treatment &amp; Prescriptions
+├── Billing &amp; Payments
+├── Documents
+├── Follow-ups
+└── Timeline</code></pre>
+<p>Ye tumhare existing architecture se directly match karta hai; source mein patient profile ke andar Overview, Appointments, Encounters, Clinical, Treatment, Prescriptions, Documents, Bills, Payments aur Follow-ups diye gaye hain.</p>
+<h3>Important</h3>
+<p><strong>Treatment + Prescriptions merge</strong></p>
+<p><strong>Bills + Payments merge</strong></p>
+<p>Ye exactly woh simplification hai jo tum bol rahe ho.</p>
+<hr>
+<h1>3. APPOINTMENTS</h1>
+<p>Ye separate major section rahega kyunki appointment management itself large hai.</p>
+<pre><code class="language-text">Appointments</code></pre>
+<p>Views:</p>
+<pre><code class="language-text">Calendar
+List
+Day
+Week
+Provider
+Branch</code></pre>
+<p>Actions:</p>
+<pre><code class="language-text">+ New Appointment
+View
+Edit
+Reschedule
+Confirm
+Check-in
+Cancel
+No-show</code></pre>
+<p>Appointment form:</p>
+<pre><code class="language-text">Patient
+Service
+Provider
+Branch
+Date
+Time
+Notes</code></pre>
+<p>Ye core fields architecture mein already defined hain.</p>
+<hr>
+<h1>4. QUEUE</h1>
+<p>Queue ko Appointment ke andar nahi chhupayenge.</p>
+<p><strong>Queue separate major section rahega</strong>, kyunki real clinic/hospital mein ye continuously operated screen hai.</p>
+<pre><code class="language-text">Queue</code></pre>
+<p>Filters:</p>
+<pre><code class="language-text">Branch
+Department
+Provider
+Service
+Date</code></pre>
+<p>Cards:</p>
+<pre><code class="language-text">Waiting
+Called
+In Consultation
+Completed</code></pre>
+<p>Actions:</p>
+<pre><code class="language-text">Call
+Recall
+Start Consultation
+Transfer
+Complete</code></pre>
+<p>Actual flow:</p>
+<pre><code class="language-text">Appointment
+     ↓
+Check-in
+     ↓
+Encounter
+     ↓
+Queue
+     ↓
+Consultation</code></pre>
+<p>Source exactly isi flow ko define karta hai.</p>
+<p>Walk-in:</p>
+<pre><code class="language-text">Patient
+ ↓
+Walk-in
+ ↓
+Service
+ ↓
+Encounter
+ ↓
+Queue</code></pre>
+<p>Appointment compulsory nahi hai.</p>
+<hr>
+<h1>5. CLINICAL</h1>
+<p>Yahan hum <strong>Encounter + Consultation + Clinical + Treatment + Prescription</strong> ko logically combine karenge.</p>
+<p>Sidebar:</p>
+<pre><code class="language-text">Clinical</code></pre>
+<p>Andar:</p>
+<pre><code class="language-text">Clinical
+│
+├── Encounters
+├── My Consultations
+├── Clinical Records
+├── Treatment
+└── Prescriptions</code></pre>
+<p>Lekin user ko ye 5 disconnected systems nahi lagenge.</p>
+<h3>Main flow:</h3>
+<pre><code class="language-text">Queue
+ ↓
+Patient
+ ↓
+Start Consultation
+ ↓
+Encounter Workspace</code></pre>
+<hr>
+<h1>CLINICAL WORKSPACE</h1>
+<pre><code class="language-text">┌─────────────────────────────────────────────┐
+│ Patient Header                              │
+│ Name | ID | Age | Phone | Alerts            │
+├─────────────────────────────────────────────┤
+│ Complaint                                   │
+│ Vitals                                      │
+│ History                                     │
+│ Examination                                 │
+│ Diagnosis                                   │
+│ Treatment                                   │
+│ Prescription                                │
+│ Documents                                   │
+│ Notes                                       │
+├─────────────────────────────────────────────┤
+│ [Save Draft] [Complete Encounter]            │
+└─────────────────────────────────────────────┘</code></pre>
+<p>Lekin dental clinic mein:</p>
+<pre><code class="language-text">Dental Examination
+Tooth Chart
+Diagnosis
+Procedure
+X-Ray</code></pre>
+<p>General clinic mein:</p>
+<pre><code class="language-text">Vitals
+History
+Diagnosis
+Treatment</code></pre>
+<p>Same Clinical Engine + Dynamic Form configuration.</p>
+<hr>
+<h1>6. BILLING &amp; PAYMENTS</h1>
+<p><strong>Billing aur Payments ko definitely merge karna chahiye.</strong></p>
+<p>Sidebar:</p>
+<pre><code class="language-text">Billing &amp; Payments</code></pre>
+<p>Andar:</p>
+<pre><code class="language-text">Billing &amp; Payments
+│
+├── Invoices
+├── Payments
+├── Receipts
+├── Refunds / Adjustments
+└── Outstanding</code></pre>
+<h3>Invoice detail</h3>
+<pre><code class="language-text">Patient
+Encounter
+
+Items
+────────────────
+Consultation
+Treatment
+Other Service
+────────────────
+
+Subtotal
+Discount
+Tax
+Total
+Paid
+Balance</code></pre>
+<p>Actions:</p>
+<pre><code class="language-text">Edit
+Add Item
+Discount
+Receive Payment
+Print
+Download
+Refund
+Void</code></pre>
+<h3>Payment</h3>
+<pre><code class="language-text">Amount
+Payment Method
+Reference
+Notes
+Attachment</code></pre>
+<p>Methods:</p>
+<pre><code class="language-text">Cash
+UPI
+Card
+Bank
+Online Gateway
+Other</code></pre>
+<h3>Online</h3>
+<pre><code class="language-text">Invoice
+ ↓
+Pay Online
+ ↓
+Gateway
+ ↓
+Callback
+ ↓
+Verification
+ ↓
+Payment
+ ↓
+Receipt</code></pre>
+<h3>Offline</h3>
+<pre><code class="language-text">Manual Payment
+ ↓
+Screenshot/Proof
+ ↓
+Pending Verification
+ ↓
+Verify
+ ↓
+Payment
+ ↓
+Receipt</code></pre>
+<p>Ye same transaction system mein jayega — separate online-payment database aur offline-payment database nahi.</p>
+<hr>
+<h1>7. DOCUMENTS &amp; FOLLOW-UPS</h1>
+<p>Ye dono ko ek sidebar section mein merge karna practical hai because dono patient/encounter lifecycle ke supporting records hain.</p>
+<pre><code class="language-text">Documents &amp; Follow-ups</code></pre>
+<p>Andar:</p>
+<pre><code class="language-text">Documents
+Follow-ups</code></pre>
+<h3>Documents</h3>
+<pre><code class="language-text">Upload
+View
+Edit Metadata
+New Version
+Archive</code></pre>
+<p>Document kisi bhi entity se linked ho sakta hai:</p>
+<pre><code class="language-text">Patient
+Encounter
+Treatment
+Invoice
+Payment
+Consent</code></pre>
+<h3>Follow-up</h3>
+<pre><code class="language-text">+ New Follow-up
+
+Patient
+Encounter
+Date
+Purpose
+Provider
+Notes</code></pre>
+<p>Follow-up zarurat ke hisaab se appointment create kar sakta hai.</p>
+<hr>
+<h1>8. REPORTS</h1>
+<p>Reports separate rahenge.</p>
+<pre><code class="language-text">Reports</code></pre>
+<p>Inside:</p>
+<pre><code class="language-text">Operational
+Patients
+Appointments
+Clinical
+Treatment
+Billing
+Payments
+Revenue
+Outstanding</code></pre>
+<p>Common filters:</p>
+<pre><code class="language-text">Date
+Branch
+Department
+Provider
+Service
+Status
+Payment Status</code></pre>
+<p>Output:</p>
+<pre><code class="language-text">Table
+Chart
+Summary
+Export</code></pre>
+<p><strong>Reports apna duplicate data store nahi karenge.</strong></p>
+<p>Existing modules se query karenge.</p>
+<hr>
+<h1>9. ADMINISTRATION</h1>
+<p>Ab yahan woh saari cheezein aayengi jo tumne pehle 15–20 separate sidebar sections bana rakhi thi.</p>
+<p><strong>Ek single Administration section.</strong></p>
+<pre><code class="language-text">Administration
+│
+├── Organization
+├── Branches &amp; Departments
+├── Staff &amp; Users
+├── Roles &amp; Permissions
+├── Services
+├── Forms
+├── Workflows
+├── Modules &amp; Features
+├── Notifications &amp; Templates
+├── Dashboard Configuration
+├── Import / Export
+├── Audit &amp; Activity
+└── System Configuration</code></pre>
+<p>Ye <strong>owner/admin only</strong> area hoga.</p>
+<hr>
+<h1>10. ORGANIZATION</h1>
+<pre><code class="language-text">Administration
+ ↓
+Organization</code></pre>
+<p>Hierarchy:</p>
+<pre><code class="language-text">Organization
+ ↓
+Branch
+ ↓
+Department
+ ↓
+Unit
+ ↓
+Resource</code></pre>
+<p>Single doctor:</p>
+<pre><code class="language-text">Dr Rahul Clinic
+└── Main Location</code></pre>
+<p>Hospital:</p>
+<pre><code class="language-text">ABC Hospital
+├── Bhopal
+│   ├── OPD
+│   ├── Dental
+│   └── Lab
+└── Indore
+    ├── OPD
+    └── Dental</code></pre>
+<p>Same model. Source explicitly isi organization hierarchy ko V1 foundation rakhta hai.</p>
+<hr>
+<h1>11. STAFF &amp; USERS</h1>
+<p>Separate:</p>
+<pre><code class="language-text">Administration
+ ↓
+Staff &amp; Users</code></pre>
+<p>New staff:</p>
+<pre><code class="language-text">Person
+ ↓
+Login
+ ↓
+Organization
+ ↓
+Branch
+ ↓
+Department
+ ↓
+Role
+ ↓
+Permissions</code></pre>
+<p>Example:</p>
+<pre><code class="language-text">Dr Amit
+Role = Doctor
+Branch = Main Clinic
+Department = Dental</code></pre>
+<p>System automatically relevant panel/navigation generate karega.</p>
+<hr>
+<h1>12. ROLES &amp; PERMISSIONS</h1>
+<pre><code class="language-text">Administration
+ ↓
+Roles &amp; Permissions</code></pre>
+<p>Example:</p>
+<pre><code class="language-text">Doctor
+ ├── patient.view
+ ├── patient.edit
+ ├── clinical.view
+ ├── clinical.create
+ ├── clinical.edit
+ └── prescription.create
+
+Receptionist
+ ├── patient.create
+ ├── appointment.create
+ ├── queue.manage
+ ├── billing.view
+ └── payment.create</code></pre>
+<p>Roles fixed नहीं होंगे. Database-driven RBAC रहेगा. Source explicitly Role, Permission, RolePermission aur UserRole define karta hai.</p>
+<hr>
+<h1>13. SERVICES</h1>
+<pre><code class="language-text">Administration
+ ↓
+Services</code></pre>
+<p>Example:</p>
+<pre><code class="language-text">Dental Consultation
+Root Canal
+Cleaning
+X-Ray
+General Consultation</code></pre>
+<p>Service configuration:</p>
+<pre><code class="language-text">Name
+Category
+Department
+Duration
+Price
+Tax
+Required Form
+Required Workflow
+Required Role
+Billing Rule</code></pre>
+<p><strong>Service hi modules ko connect karne ka major bridge hai.</strong></p>
+<pre><code class="language-text">Service
+ ↓
+Form
+ ↓
+Workflow
+ ↓
+Provider
+ ↓
+Encounter
+ ↓
+Treatment
+ ↓
+Billing</code></pre>
+<hr>
+<h1>14. FORMS</h1>
+<pre><code class="language-text">Administration
+ ↓
+Forms</code></pre>
+<p>Yahan admin apne forms banayega.</p>
+<pre><code class="language-text">+ Create Form</code></pre>
+<p>Then:</p>
+<pre><code class="language-text">Form
+ ↓
+Sections
+ ↓
+Fields
+ ↓
+Options
+ ↓
+Validation
+ ↓
+Visibility Rules
+ ↓
+Preview
+ ↓
+Publish</code></pre>
+<p>Example:</p>
+<pre><code class="language-text">Dental Examination
+├── Complaint
+├── Tooth Number
+├── Diagnosis
+├── X-Ray
+└── Notes</code></pre>
+<p>Form <strong>Create / View / Edit</strong> teen modes mein reusable rahega.</p>
+<hr>
+<h1>15. WORKFLOWS</h1>
+<pre><code class="language-text">Administration
+ ↓
+Workflows</code></pre>
+<p>Admin:</p>
+<pre><code class="language-text">Create
+Edit
+Duplicate
+Test
+Publish
+Archive</code></pre>
+<p>Example:</p>
+<pre><code class="language-text">Appointment
+ ↓
+Check-in
+ ↓
+Consultation
+ ↓
+Treatment
+ ↓
+Bill
+ ↓
+Payment
+ ↓
+Follow-up</code></pre>
+<p>Workflow database/configuration driven hoga, hard-coded नहीं. Source mein WorkflowVersion, Step, Transition, Condition aur Action foundation define hain.</p>
+<hr>
+<h1>16. MODULES &amp; FEATURES</h1>
+<pre><code class="language-text">Administration
+ ↓
+Modules &amp; Features</code></pre>
+<p>Example clinic:</p>
+<pre><code class="language-text">Patients       ON
+Appointments   ON
+Queue          ON
+Clinical       ON
+Billing        ON
+Payments       ON
+Dental         ON
+Lab            OFF
+Pharmacy       OFF
+IPD            OFF</code></pre>
+<p>Hospital:</p>
+<pre><code class="language-text">Patients       ON
+Appointments   ON
+Queue          ON
+Clinical       ON
+Billing        ON
+Lab            ON
+Pharmacy       ON
+IPD            ON</code></pre>
+<p>Ye <strong>database-driven configuration</strong> hogi. Source explicitly Organization/Branch/Module/Feature configuration define karta hai.</p>
+<hr>
+<h1>17. NOTIFICATIONS &amp; TEMPLATES</h1>
+<p>Merge:</p>
+<pre><code class="language-text">Notifications &amp; Templates</code></pre>
+<p>Inside:</p>
+<pre><code class="language-text">Templates
+Rules
+Channels
+Logs</code></pre>
+<p>Channels:</p>
+<pre><code class="language-text">In-app
+SMS
+Email
+WhatsApp</code></pre>
+<p>Appointment create hone par event generate hoga aur configured notification channels trigger ho sakte hain.</p>
+<hr>
+<h1>18. AUDIT &amp; ACTIVITY</h1>
+<p>Separate main sidebar nahi.</p>
+<p>Administration ke andar:</p>
+<pre><code class="language-text">Audit &amp; Activity</code></pre>
+<p>Yahan:</p>
+<pre><code class="language-text">Who
+What
+When
+Entity
+Old Value
+New Value
+Action</code></pre>
+<p>Example:</p>
+<pre><code class="language-text">Rahul
+Edited Invoice INV-001
+₹5000 → ₹4500
+Reason: Discount</code></pre>
+<hr>
+<h1>19. SETTINGS</h1>
+<p>Settings ko Administration ke andar completely nahi ghusana chahiye.</p>
+<p>Bottom mein:</p>
+<pre><code class="language-text">Settings</code></pre>
+<p>User-specific:</p>
+<pre><code class="language-text">Profile
+Password
+Preferences
+Notifications
+Theme
+Language
+Branch Preference</code></pre>
+<p>System-level settings authorized admin ke Administration mein rahenge.</p>
+<hr>
+<h1>20. AB “BACK BUTTON” KA RULE 🔥</h1>
+<p>Ye bahut important hai.</p>
+<p>Har screen ko user ko dead-end nahi banana.</p>
+<h3>Example</h3>
+<pre><code class="language-text">Patients
+ ↓
+Patient Profile
+ ↓
+Appointment
+ ↓
+Appointment Detail</code></pre>
+<p>Top breadcrumb:</p>
+<pre><code class="language-text">Patients / Amit Sharma / Appointment #A001</code></pre>
+<p>And:</p>
+<pre><code class="language-text">← Back</code></pre>
+<p>Back ka behaviour <strong>browser-history + logical parent context</strong> dono respect kare.</p>
+<p>Example:</p>
+<p>Agar user:</p>
+<pre><code class="language-text">Patient Profile
+ → Appointment</code></pre>
+<p>se aaya hai:</p>
+<p><strong>Back → Patient Profile</strong></p>
+<p>Agar:</p>
+<pre><code class="language-text">Appointments List
+ → Appointment</code></pre>
+<p>se aaya:</p>
+<p><strong>Back → Appointments List</strong></p>
+<p>Hard-coded <code>Back → Dashboard</code> nahi.</p>
+<hr>
+<h1>21. DETAIL PAGE KA STANDARD STRUCTURE</h1>
+<p>Har major entity:</p>
+<pre><code class="language-text">← Back
+
+Entity Name
+ID
+Status
+
+[Primary Action] [Edit] [More]
+
+────────────────────────
+
+Overview
+Related Data
+History</code></pre>
+<p>Example Patient:</p>
+<pre><code class="language-text">← Back to Patients
+
+Amit Sharma
+P001
+
+[Book Appointment] [Edit] [...]
+
+Overview | Appointments | Clinical | Billing ...
+
+...</code></pre>
+<p>Example Invoice:</p>
+<pre><code class="language-text">← Back to Billing
+
+Invoice INV-001
+
+[Edit] [Payment] [Print] [...]
+
+Overview
+Items
+Payments
+History</code></pre>
+<hr>
+<h1>22. MORE MENU KA STANDARD RULE</h1>
+<p>Har jagah buttons ka jungle nahi.</p>
+<p>Primary action visible:</p>
+<pre><code class="language-text">[Edit]</code></pre>
+<p>Secondary actions:</p>
+<pre><code class="language-text">⋮ More</code></pre>
+<p>Inside:</p>
+<pre><code class="language-text">Duplicate
+Archive
+Cancel
+Delete/Soft Delete
+History
+Audit
+Print
+Export</code></pre>
+<p>Permission ke according actions automatically hide/show.</p>
+<hr>
+<h1>23. DELETE KA RULE</h1>
+<p>Healthcare mein direct permanent delete default nahi.</p>
+<pre><code class="language-text">Delete</code></pre>
+<p>ke bajay generally:</p>
+<pre><code class="language-text">Archive
+Deactivate
+Cancel
+Void
+Soft Delete</code></pre>
+<p>Use hoga.</p>
+<p>Source architecture explicitly soft-delete/archival approach rakhta hai.</p>
+<hr>
+<h1>24. HAR ENTITY KA STANDARD CRUD</h1>
+<p>Har major entity:</p>
+<pre><code class="language-text">CREATE
+VIEW
+EDIT
+ARCHIVE
+HISTORY
+AUDIT</code></pre>
+<p>Aur jahan relevant:</p>
+<pre><code class="language-text">CANCEL
+VOID
+REFUND
+RESTORE
+DUPLICATE
+EXPORT
+PRINT</code></pre>
+<hr>
+<h1>25. SABSE IMPORTANT — DATA DUPLICATE NAHI HOGA</h1>
+<p>Example Patient:</p>
+<pre><code class="language-text">patient_id = P001</code></pre>
+<p>Ye same ID:</p>
+<pre><code class="language-text">Patient
+Appointment
+Queue
+Encounter
+Clinical
+Treatment
+Prescription
+Invoice
+Payment
+Document
+Follow-up
+Reports</code></pre>
+<p>mein reference hogi.</p>
+<p>Patient profile ke andar jo dikhta hai woh <strong>same underlying records</strong> hain, duplicate copies nahi.</p>
+<p>Source bhi explicitly kehta hai ki patient ke related modules <code>patient_id</code> se connected hain.</p>
+<hr>
+<h1>26. COMPLETE END-TO-END CONNECTIVITY</h1>
+<p>Ab poora V1 ek baar dekho:</p>
+<pre><code class="language-text">                    ORGANIZATION
+                         │
+                    USER / ROLE
+                         │
+                    DASHBOARD
+                         │
+            ┌────────────┼────────────┐
+            │            │            │
+        PATIENT      APPOINTMENT    BILLING
+            │            │
+            │         CHECK-IN
+            │            │
+            │          QUEUE
+            │            │
+            └────────────┤
+                         ↓
+                     ENCOUNTER
+                         ↓
+                     CLINICAL
+                         │
+              ┌──────────┼──────────┐
+              ↓          ↓          ↓
+          TREATMENT  PRESCRIPTION DOCUMENT
+              │
+              ↓
+            BILL
+              ↓
+           PAYMENT
+              ↓
+           RECEIPT
+              ↓
+         FOLLOW-UP
+              ↓
+        APPOINTMENT</code></pre>
+<p>Parallel:</p>
+<pre><code class="language-text">EVERY IMPORTANT ACTION
+          │
+     ┌────┼─────┐
+     ↓    ↓     ↓
+   EVENT AUDIT HISTORY
+     │
+     ↓
+NOTIFICATION</code></pre>
+<p>Ye source ke core execution flow se match karta hai.</p>
+<hr>
+<h1>27. DYNAMIC LAYER IS SABKE UPAR</h1>
+<p>Actual secret yahi hai:</p>
+<pre><code class="language-text">                    DYNAMIC LAYER
+                         │
+        ┌────────────────┼─────────────────┐
+        ↓                ↓                 ↓
+   CONFIGURATION       FORMS           WORKFLOWS
+        │                │                 │
+        ↓                ↓                 ↓
+   MODULES          CLINICAL DATA      STATUS FLOW
+        │                │                 │
+        └────────────────┼─────────────────┘
+                         ↓
+                    CORE ENGINE</code></pre>
+<p>Iska matlab:</p>
+<h3>Aaj</h3>
+<pre><code class="language-text">Dental
+ ↓
+Dental Form
+ ↓
+Dental Workflow
+ ↓
+Root Canal Service</code></pre>
+<h3>Kal</h3>
+<pre><code class="language-text">Eye
+ ↓
+Eye Examination Form
+ ↓
+Eye Workflow
+ ↓
+Eye Consultation Service</code></pre>
+<h3>Baad mein</h3>
+<pre><code class="language-text">Hospital
+ ↓
+Hospital-specific Forms
+ ↓
+Hospital-specific Workflows
+ ↓
+Hospital Services</code></pre>
+<p>Core rewrite nahi hoga. V1 architecture ka purpose exactly ye hai ki future specialty/business modules same Encounter + Form + Workflow + Service foundation use karein.</p>
+<hr>
+<h1>28. FINAL SIDEBAR — LOCK THIS</h1>
+<p>Main <strong>isi ko final V1 navigation recommend karunga</strong>:</p>
+<pre><code class="language-text">🏠 Dashboard
+
+👤 Patients
+
+📅 Appointments
+
+⏱ Queue
+
+🩺 Clinical
+
+💰 Billing &amp; Payments
+
+📁 Documents &amp; Follow-ups
+
+📊 Reports
+
+────────────────────
+
+⚙ Administration
+
+   ├─ Organization
+   ├─ Branches &amp; Departments
+   ├─ Staff &amp; Users
+   ├─ Roles &amp; Permissions
+   ├─ Services
+   ├─ Forms
+   ├─ Workflows
+   ├─ Modules &amp; Features
+   ├─ Notifications &amp; Templates
+   ├─ Dashboard Configuration
+   ├─ Import / Export
+   ├─ Audit &amp; Activity
+   └─ System Configuration
+
+⚙ Settings</code></pre>
+<h3>Aur role ke according sidebar shrink hoga.</h3>
+<p><strong>Doctor:</strong></p>
+<pre><code class="language-text">Dashboard
+Appointments
+Queue
+Clinical
+Documents &amp; Follow-ups</code></pre>
+<p><strong>Receptionist:</strong></p>
+<pre><code class="language-text">Dashboard
+Patients
+Appointments
+Queue
+Billing &amp; Payments
+Documents &amp; Follow-ups</code></pre>
+<p><strong>Billing Staff:</strong></p>
+<pre><code class="language-text">Dashboard
+Patients
+Billing &amp; Payments
+Reports</code></pre>
+<p><strong>Admin:</strong></p>
+<pre><code class="language-text">Everything allowed by permissions
++
+Administration</code></pre>
+<hr>
+<h1>29. V1 KO “FULL-FLEDGED” BANANE KA FINAL RULE</h1>
+<p>Bhai, <strong>feature count badhana full-fledged software nahi banata. Connectivity full-fledged banati hai.</strong></p>
+<p>Is V1 mein:</p>
+<pre><code class="language-text">Patient
+   ↕
+Appointment
+   ↕
+Queue
+   ↕
+Encounter
+   ↕
+Clinical
+   ↕
+Treatment
+   ↕
+Billing
+   ↕
+Payment
+   ↕
+Receipt
+   ↕
+Follow-up</code></pre>
+<p>Aur har jagah:</p>
+<pre><code class="language-text">View
+Edit
+Create
+History
+Audit
+Permission
+Workflow
+Event
+Notification</code></pre>
+<p>available hoga.</p>
+<p>Aur Administration se:</p>
+<pre><code class="language-text">Organization
+Users
+Roles
+Permissions
+Services
+Forms
+Workflows
+Modules
+Features
+Dashboard
+Notifications</code></pre>
+<p><strong>poora business dynamically configure ho sakega.</strong></p>
+<p>Ye V1 ke original principle se bhi match karta hai: V1 ka target real small healthcare business ko complete daily cycle chalana hai, while V2/V3 ke liye connection points already ready rakhna hai.</p>
+<p><strong>Meri recommendation: isi sidebar ko V1 ka navigation freeze karo.</strong> Iske baad sidebar mein aur modules add na karo; new functionality existing sections ke andar jayegi. Ye UI ko powerful bhi rakhega aur unnecessarily complicated bhi nahi banne dega.</p></body></html>

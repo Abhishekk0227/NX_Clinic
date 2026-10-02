@@ -1,0 +1,2571 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Text To Word</title></head><body><h1>V1 MASTER PRODUCT SPECIFICATION</h1>
+<h2>Healthcare Business Management System — V1</h2>
+<p><strong>Document Type:</strong> Master Product Specification<br><strong>Version:</strong> V1<br><strong>Purpose:</strong> Product/UI/UX/business behavior source of truth<br><strong>Target:</strong> Single Doctor → Clinic → Dental Clinic → Multi-doctor Clinic → Nursing Home → Diagnostic Centre → Specialty Centre → Hospital<br><strong>Future Compatibility:</strong> V2 + V3 compatible by design</p>
+<hr>
+<h1>0. DOCUMENT RULE</h1>
+<p>This document defines <strong>WHAT V1 is</strong>, <strong>WHAT the user sees</strong>, <strong>WHAT the user can do</strong>, <strong>WHERE the user goes</strong>, <strong>WHAT each screen contains</strong>, <strong>WHAT forms exist</strong>, <strong>WHAT actions are available</strong>, <strong>HOW modules connect from the user's perspective</strong>, and <strong>HOW the product dynamically adapts to different organizations, roles, branches, services, forms and workflows</strong>.</p>
+<p>This document does NOT define detailed MongoDB schema, backend implementation, code structure or development phases. Those belong to:</p>
+<ol>
+<li>
+<p><code>V1_MASTER_PRODUCT_SPEC</code></p>
+</li>
+<li>
+<p><code>V1_TECHNICAL_ARCHITECTURE</code></p>
+</li>
+<li>
+<p><code>V1_IMPLEMENTATION_PLAN</code></p>
+</li>
+</ol>
+<p>Source-of-truth hierarchy:</p>
+<pre><code class="language-text">MASTER PRODUCT SPEC
+        ↓
+TECHNICAL ARCHITECTURE
+        ↓
+IMPLEMENTATION PLAN
+        ↓
+CODE
+        ↓
+TESTS
+</code></pre>
+<p>If implementation conflicts with this specification, implementation must be corrected rather than silently changing the product behavior.</p>
+<hr>
+<h1>1. V1 PRODUCT GOAL</h1>
+<p>V1 must be a complete, usable healthcare business operating system.</p>
+<p>V1 is NOT merely:</p>
+<ul>
+<li>
+<p>patient register</p>
+</li>
+<li>
+<p>appointment software</p>
+</li>
+<li>
+<p>billing software</p>
+</li>
+<li>
+<p>doctor notes software</p>
+</li>
+</ul>
+<p>It is one connected system covering:</p>
+<pre><code class="language-text">Business Setup
+      ↓
+Users / Roles / Permissions
+      ↓
+Patient
+      ↓
+Appointment / Walk-in
+      ↓
+Queue
+      ↓
+Encounter
+      ↓
+Consultation
+      ↓
+Dynamic Clinical Record
+      ↓
+Treatment / Prescription
+      ↓
+Billing
+      ↓
+Payment
+      ↓
+Receipt
+      ↓
+Documents
+      ↓
+Follow-up
+      ↓
+Notifications
+      ↓
+Reports / Audit
+</code></pre>
+<p>This is the core V1 business loop.</p>
+<hr>
+<h1>2. V1 TARGET USERS</h1>
+<p>The same V1 product must support:</p>
+<pre><code class="language-text">1. Single Doctor / Small Clinic
+2. General Clinic
+3. Dental Clinic
+4. 2–5 Doctor Clinic
+5. 10–50 Doctor Clinic
+6. Nursing Home
+7. Diagnostic Centre
+8. Specialty Centre
+9. Specialty Hospital
+10. Multi-branch Healthcare Organization
+</code></pre>
+<p>The product must NOT have a separate software architecture for each.</p>
+<p>Instead:</p>
+<pre><code class="language-text">Same Core
+   +
+Organization Configuration
+   +
+Module Configuration
+   +
+Feature Configuration
+   +
+Dynamic Forms
+   +
+Dynamic Workflows
+   +
+Services
+   +
+Roles / Permissions
+</code></pre>
+<p>The underlying architecture is intended to use the same organization model from a single doctor to a multi-branch hospital.</p>
+<hr>
+<h1>3. CORE PRODUCT PRINCIPLE</h1>
+<h2>3.1 Do NOT build separate products</h2>
+<p>Never create:</p>
+<pre><code class="language-text">Dental Software
+Hospital Software
+Clinic Software
+Diagnostic Software
+</code></pre>
+<p>as separate systems.</p>
+<p>Instead:</p>
+<pre><code class="language-text">Healthcare Core
+       ↓
+Configuration
+       ↓
+Business-specific behavior
+</code></pre>
+<hr>
+<h1>4. V1 MAIN NAVIGATION</h1>
+<p>The main sidebar must remain intentionally compact.</p>
+<h2>Primary Sidebar</h2>
+<pre><code class="language-text">Dashboard
+
+Patients
+
+Appointments
+
+Queue
+
+Clinical
+
+Billing &amp; Payments
+
+Documents &amp; Follow-ups
+
+Reports
+
+────────────────────
+
+Administration
+
+Settings
+</code></pre>
+<p>Do NOT create separate main sidebar items for every small feature.</p>
+<p>For example:</p>
+<pre><code class="language-text">Treatment
+Prescription
+Invoices
+Payments
+Receipts
+Users
+Roles
+Forms
+Workflows
+Services
+Branches
+Audit
+Notifications
+</code></pre>
+<p>must NOT all become separate top-level sidebar modules.</p>
+<p>They belong inside their appropriate parent sections.</p>
+<hr>
+<h1>5. SIDEBAR RULE</h1>
+<p>Navigation is dynamic.</p>
+<p>A user sees a section only when:</p>
+<pre><code class="language-text">User Permission
++
+Organization Configuration
++
+Branch Configuration
++
+Feature Configuration
+</code></pre>
+<p>allow it.</p>
+<p>The dashboard and visible modules are role + permission + configuration driven, not fixed.</p>
+<hr>
+<h1>6. DASHBOARD</h1>
+<h2>6.1 Dashboard purpose</h2>
+<p>Dashboard is the user's operational starting point.</p>
+<p>It must show only information relevant to the current:</p>
+<pre><code class="language-text">Organization
+Branch
+Role
+Permissions
+Enabled Modules
+Enabled Features
+</code></pre>
+<hr>
+<h2>6.2 Dashboard structure</h2>
+<pre><code class="language-text">Dashboard
+│
+├── Summary / KPI Cards
+├── Today's Appointments
+├── Today's Queue
+├── Pending Clinical Work
+├── Pending Payments
+├── Outstanding Bills
+├── Follow-ups
+├── Recent Patients
+├── Recent Activity
+└── Quick Actions
+</code></pre>
+<hr>
+<h2>6.3 Dashboard KPI examples</h2>
+<p>Depending on role and configuration:</p>
+<pre><code class="language-text">Today's Patients
+Today's Appointments
+Waiting Queue
+Completed Consultations
+Pending Bills
+Today's Collection
+Outstanding Amount
+Pending Follow-ups
+</code></pre>
+<p>Not every KPI must appear for every role.</p>
+<hr>
+<h2>6.4 Quick Actions</h2>
+<p>Possible actions:</p>
+<pre><code class="language-text">+ New Patient
++ Appointment
++ Walk-in
++ Check-in
++ New Encounter
++ Invoice
++ Payment
++ Upload Document
++ Follow-up
+</code></pre>
+<p>Only permitted actions appear.</p>
+<hr>
+<h2>6.5 Role-specific dashboard</h2>
+<h3>Doctor</h3>
+<pre><code class="language-text">My Appointments
+My Patients
+Today's Queue
+Pending Consultations
+Pending Follow-ups
+Recent Clinical Records
+</code></pre>
+<h3>Reception</h3>
+<pre><code class="language-text">Today's Appointments
+Patients
+Queue
+Pending Check-ins
+Billing
+Payments
+</code></pre>
+<h3>Billing Staff</h3>
+<pre><code class="language-text">Invoices
+Pending Payments
+Outstanding
+Today's Collection
+Receipts
+</code></pre>
+<h3>Admin</h3>
+<pre><code class="language-text">Revenue
+Patients
+Appointments
+Users
+Reports
+Configuration
+Activity
+</code></pre>
+<p>This role-driven behavior is part of the V1 source.</p>
+<hr>
+<h1>7. PATIENTS</h1>
+<p>Patients is a primary sidebar module.</p>
+<pre><code class="language-text">Patients
+</code></pre>
+<hr>
+<h2>7.1 Patient list</h2>
+<p>Screen:</p>
+<pre><code class="language-text">Patients
+
+[+ New Patient] [Walk-in]
+
+Search
+Filters
+
+Patient ID
+Name
+Phone
+Gender
+Age
+Branch
+Provider
+Status
+Last Visit
+Balance
+</code></pre>
+<hr>
+<h2>7.2 Patient list actions</h2>
+<p>Each patient row supports:</p>
+<pre><code class="language-text">View
+Edit
+More
+</code></pre>
+<p>More:</p>
+<pre><code class="language-text">Book Appointment
+Walk-in
+New Encounter
+Create Bill
+Receive Payment
+Upload Document
+Add Follow-up
+Archive
+View History
+</code></pre>
+<p>Actions must be permission controlled.</p>
+<hr>
+<h1>8. NEW PATIENT FORM</h1>
+<p>New patient flow:</p>
+<pre><code class="language-text">+ New Patient
+      ↓
+Person Details
+      ↓
+Patient Details
+      ↓
+Save
+      ↓
+Patient Profile
+</code></pre>
+<p>This Person → Patient separation is part of the existing master architecture.</p>
+<hr>
+<h2>8.1 Person Details</h2>
+<p>Core fields:</p>
+<pre><code class="language-text">First Name
+Middle Name
+Last Name
+Date of Birth
+Gender
+Phone
+Alternate Phone
+Email
+Address
+City
+State
+Country
+Postal Code
+</code></pre>
+<p>Where configured:</p>
+<pre><code class="language-text">Emergency Contact
+Preferred Language
+Identity Information
+</code></pre>
+<hr>
+<h2>8.2 Patient Details</h2>
+<pre><code class="language-text">Patient Number
+Patient Status
+Registration Date
+Preferred Branch
+Preferred Provider
+Patient Category
+Referral Source
+Notes
+</code></pre>
+<p>Patient number is system-generated.</p>
+<hr>
+<h1>9. PATIENT PROFILE</h1>
+<p>Patient Profile is the central patient hub.</p>
+<p>It must NOT behave like ten disconnected systems.</p>
+<p>The same patient record connects all relevant healthcare and financial information.</p>
+<p>The source explicitly defines the patient profile as a central navigation containing appointments, encounters, clinical, treatment, prescriptions, documents, bills, payments and follow-ups, connected through <code>patient_id</code>.</p>
+<hr>
+<h2>9.1 Patient profile header</h2>
+<pre><code class="language-text">Patient Name
+Patient ID
+Age
+Gender
+Phone
+Status
+Branch
+</code></pre>
+<p>Actions:</p>
+<pre><code class="language-text">Book Appointment
+Walk-in
+New Encounter
+Create Bill
+Receive Payment
+Upload Document
+Add Follow-up
+Edit
+More
+</code></pre>
+<hr>
+<h2>9.2 Patient profile tabs</h2>
+<pre><code class="language-text">Overview
+Appointments
+Encounters
+Clinical
+Treatment
+Prescriptions
+Documents
+Billing &amp; Payments
+Follow-ups
+Timeline
+</code></pre>
+<hr>
+<h1>10. PATIENT OVERVIEW</h1>
+<p>Show:</p>
+<pre><code class="language-text">Patient Information
+Current Status
+Last Visit
+Next Appointment
+Outstanding Balance
+Recent Encounter
+Recent Treatment
+Recent Prescription
+Recent Documents
+Upcoming Follow-up
+</code></pre>
+<p>Quick actions:</p>
+<pre><code class="language-text">Appointment
+Walk-in
+Encounter
+Bill
+Payment
+Document
+Follow-up
+</code></pre>
+<hr>
+<h1>11. PATIENT APPOINTMENTS</h1>
+<p>Inside Patient Profile:</p>
+<pre><code class="language-text">Appointments
+</code></pre>
+<p>Show:</p>
+<pre><code class="language-text">Date
+Time
+Provider
+Service
+Branch
+Status
+</code></pre>
+<p>Actions:</p>
+<pre><code class="language-text">View
+Edit
+Reschedule
+Confirm
+Cancel
+Check-in
+No-show
+</code></pre>
+<hr>
+<h1>12. PATIENT ENCOUNTERS</h1>
+<p>Show:</p>
+<pre><code class="language-text">Encounter ID
+Date
+Provider
+Service
+Type
+Status
+</code></pre>
+<p>Actions:</p>
+<pre><code class="language-text">View
+Continue
+Complete
+View Clinical Record
+View Treatment
+View Prescription
+View Billing
+</code></pre>
+<hr>
+<h1>13. PATIENT CLINICAL</h1>
+<p>Clinical tab shows the patient's clinical history.</p>
+<p>Possible sections:</p>
+<pre><code class="language-text">Clinical Records
+Diagnoses
+Vitals
+History
+Examinations
+Notes
+Procedures
+Attachments
+</code></pre>
+<p>Actual displayed fields depend on configured forms.</p>
+<hr>
+<h1>14. PATIENT TREATMENT</h1>
+<p>Show:</p>
+<pre><code class="language-text">Treatment
+Service
+Provider
+Date
+Status
+Price
+Related Encounter
+</code></pre>
+<p>Actions:</p>
+<pre><code class="language-text">View
+Edit
+Add
+Cancel
+View Bill
+</code></pre>
+<hr>
+<h1>15. PATIENT PRESCRIPTIONS</h1>
+<p>Show:</p>
+<pre><code class="language-text">Prescription ID
+Date
+Provider
+Medicine
+Dose
+Frequency
+Duration
+Instructions
+Status
+</code></pre>
+<p>Actions:</p>
+<pre><code class="language-text">View
+Edit
+Print
+Download
+</code></pre>
+<p>V1 must store prescriptions in a way that future V2 Pharmacy can consume them without rebuilding the prescription system. The source explicitly identifies prescription as a future pharmacy connection point.</p>
+<hr>
+<h1>16. PATIENT DOCUMENTS</h1>
+<p>Show:</p>
+<pre><code class="language-text">Document Name
+Type
+Related Entity
+Uploaded By
+Date
+Version
+Status
+</code></pre>
+<p>Actions:</p>
+<pre><code class="language-text">View
+Upload New Version
+Download
+Archive
+View History
+</code></pre>
+<p>Documents may be linked to:</p>
+<pre><code class="language-text">Patient
+Encounter
+Treatment
+Invoice
+</code></pre>
+<p>as defined in the existing document model.</p>
+<hr>
+<h1>17. PATIENT BILLING &amp; PAYMENTS</h1>
+<p>Show:</p>
+<pre><code class="language-text">Invoices
+Payments
+Receipts
+Outstanding
+Refunds / Adjustments
+</code></pre>
+<p>Actions:</p>
+<pre><code class="language-text">Create Invoice
+Receive Payment
+View Invoice
+View Receipt
+Refund
+Print
+Download
+</code></pre>
+<hr>
+<h1>18. PATIENT FOLLOW-UPS</h1>
+<p>Show:</p>
+<pre><code class="language-text">Follow-up Date
+Purpose
+Provider
+Related Encounter
+Status
+Notes
+</code></pre>
+<p>Actions:</p>
+<pre><code class="language-text">View
+Edit
+Complete
+Reschedule
+Create Appointment
+</code></pre>
+<hr>
+<h1>19. PATIENT TIMELINE</h1>
+<p>Timeline should combine important events:</p>
+<pre><code class="language-text">Patient Registered
+Appointment Booked
+Appointment Confirmed
+Checked-in
+Encounter Created
+Queue Entry
+Consultation Started
+Clinical Record Updated
+Treatment Added
+Prescription Created
+Invoice Created
+Payment Received
+Receipt Generated
+Document Uploaded
+Follow-up Created
+Appointment Completed
+</code></pre>
+<p>This is a business timeline, not a replacement for the formal audit log.</p>
+<hr>
+<h1>20. APPOINTMENTS</h1>
+<p>Top-level:</p>
+<pre><code class="language-text">Appointments
+</code></pre>
+<hr>
+<h2>20.1 Appointment views</h2>
+<pre><code class="language-text">Calendar
+Day
+Week
+List
+Provider
+Branch
+</code></pre>
+<hr>
+<h2>20.2 Appointment filters</h2>
+<pre><code class="language-text">Date
+Branch
+Provider
+Department
+Service
+Status
+Patient
+</code></pre>
+<hr>
+<h2>20.3 New Appointment form</h2>
+<p>Fields:</p>
+<pre><code class="language-text">Patient
+Service
+Provider
+Branch
+Department
+Date
+Time
+Duration
+Reason
+Notes
+</code></pre>
+<p>Core appointment fields in the source include patient, service, provider, date/time, branch and notes.</p>
+<hr>
+<h2>20.4 Appointment actions</h2>
+<pre><code class="language-text">View
+Edit
+Confirm
+Reschedule
+Check-in
+Cancel
+No-show
+Start Encounter
+</code></pre>
+<hr>
+<h1>21. APPOINTMENT FLOW</h1>
+<pre><code class="language-text">Patient
+ ↓
+Book Appointment
+ ↓
+Select Service
+ ↓
+Select Provider
+ ↓
+Select Date/Time
+ ↓
+Save
+ ↓
+Appointment Created
+ ↓
+Notification Rules
+</code></pre>
+<p>Appointment creation generates an appointment event, after which configured notification channels can run.</p>
+<p>Possible notification channels:</p>
+<pre><code class="language-text">In-App
+SMS
+Email
+WhatsApp
+</code></pre>
+<hr>
+<h1>22. QUEUE</h1>
+<p>Queue is a separate primary operational section.</p>
+<pre><code class="language-text">Queue
+</code></pre>
+<p>This is intentional because queue is a real-time working screen.</p>
+<hr>
+<h2>22.1 Queue filters</h2>
+<pre><code class="language-text">Branch
+Department
+Provider
+Service
+Date
+Status
+</code></pre>
+<hr>
+<h2>22.2 Queue states</h2>
+<p>Default example:</p>
+<pre><code class="language-text">Waiting
+ ↓
+Called
+ ↓
+In Consultation
+ ↓
+Completed
+</code></pre>
+<p>Actual transitions must be workflow/configuration driven.</p>
+<hr>
+<h2>22.3 Queue actions</h2>
+<pre><code class="language-text">Call
+Recall
+Start Consultation
+Transfer
+Skip
+Complete
+</code></pre>
+<p>Only permitted actions appear.</p>
+<hr>
+<h1>23. CHECK-IN</h1>
+<p>Appointment:</p>
+<pre><code class="language-text">Today's Appointments
+ ↓
+Check-in
+</code></pre>
+<p>System:</p>
+<pre><code class="language-text">Appointment
+ ↓
+Encounter
+ ↓
+Queue Entry
+</code></pre>
+<p>This is the defined V1 flow.</p>
+<hr>
+<h1>24. WALK-IN</h1>
+<p>Appointment is NOT mandatory.</p>
+<p>Flow:</p>
+<pre><code class="language-text">Patients
+ ↓
+New / Existing Patient
+ ↓
+Walk-in
+ ↓
+Select Service
+ ↓
+Create Encounter
+ ↓
+Queue
+</code></pre>
+<p>Appointment and Walk-in must both end at the same Encounter engine.</p>
+<hr>
+<h1>25. CLINICAL</h1>
+<p>Primary sidebar:</p>
+<pre><code class="language-text">Clinical
+</code></pre>
+<p>Internal navigation:</p>
+<pre><code class="language-text">Encounters
+My Consultations
+Clinical Records
+Treatment
+Prescriptions
+</code></pre>
+<p>These are logically grouped, not separate primary sidebar modules.</p>
+<hr>
+<h1>26. ENCOUNTER</h1>
+<p>Encounter is the common clinical working context.</p>
+<p>It can originate from:</p>
+<pre><code class="language-text">Appointment
+OR
+Walk-in
+</code></pre>
+<hr>
+<h2>26.1 Encounter detail</h2>
+<p>Header:</p>
+<pre><code class="language-text">Patient
+Encounter ID
+Provider
+Service
+Date
+Status
+</code></pre>
+<p>Actions:</p>
+<pre><code class="language-text">Start
+Continue
+Save Draft
+Complete
+Cancel
+View History
+</code></pre>
+<hr>
+<h1>27. CLINICAL WORKSPACE</h1>
+<p>The doctor selects:</p>
+<pre><code class="language-text">Today's Queue
+ ↓
+Patient
+ ↓
+Start Consultation
+</code></pre>
+<p>System:</p>
+<pre><code class="language-text">Queue
+ ↓
+Encounter
+ ↓
+Clinical Workspace
+</code></pre>
+<p>The workspace is dynamically configured.</p>
+<hr>
+<h1>28. GENERAL CLINICAL WORKSPACE</h1>
+<p>Possible sections:</p>
+<pre><code class="language-text">Patient Header
+
+Complaint
+Vitals
+History
+Examination
+Diagnosis
+Treatment
+Prescription
+Documents
+Notes
+</code></pre>
+<hr>
+<h1>29. DENTAL CLINICAL WORKSPACE</h1>
+<p>Possible configuration:</p>
+<pre><code class="language-text">Patient Header
+
+Dental Examination
+Tooth Chart
+Diagnosis
+Procedure
+X-Ray
+Treatment
+Prescription
+Documents
+Notes
+</code></pre>
+<p>The same Clinical Engine supports different workspace configurations through dynamic forms.</p>
+<hr>
+<h1>30. DYNAMIC FORM ENGINE — PRODUCT BEHAVIOR</h1>
+<p>The admin/user must be able to create and modify forms without requiring a new software screen for every business.</p>
+<p>Concept:</p>
+<pre><code class="language-text">Form
+ ↓
+Sections
+ ↓
+Fields
+ ↓
+Options
+ ↓
+Validation
+ ↓
+Visibility Rules
+</code></pre>
+<p>Existing architecture explicitly defines:</p>
+<pre><code class="language-text">Form
+FormSection
+FormField
+FieldOption
+FieldValidation
+</code></pre>
+<hr>
+<h1>31. DYNAMIC FIELD TYPES</h1>
+<p>The V1 product should support configurable field types such as:</p>
+<pre><code class="language-text">Text
+Long Text
+Number
+Decimal
+Date
+Date + Time
+Dropdown
+Multi-select
+Radio
+Checkbox
+Boolean
+File / Attachment
+Image
+Email
+Phone
+Address
+Reference / Lookup
+</code></pre>
+<p>Additional specialized field types can be added later without changing the overall form concept.</p>
+<hr>
+<h1>32. FORM FIELD CONFIGURATION</h1>
+<p>Each field can configure:</p>
+<pre><code class="language-text">Label
+Internal Key
+Type
+Required
+Default Value
+Placeholder
+Help Text
+Options
+Validation
+Min
+Max
+Pattern
+Visibility Rule
+Read-only Rule
+Ordering
+Section
+</code></pre>
+<hr>
+<h1>33. DYNAMIC FORM EXAMPLE</h1>
+<p>Dental Examination:</p>
+<pre><code class="language-text">Dental Examination
+│
+├── Tooth Number
+│     Type: Dropdown
+│
+├── Diagnosis
+│     Type: Multi-select
+│
+├── Notes
+│     Type: Long Text
+│
+└── X-Ray
+      Type: Attachment
+</code></pre>
+<p>If tomorrow the clinic needs:</p>
+<pre><code class="language-text">Blood Pressure
+</code></pre>
+<p>admin can add:</p>
+<pre><code class="language-text">Add Field
+ ↓
+Blood Pressure
+ ↓
+Number
+ ↓
+Save
+</code></pre>
+<p>without requiring a new hard-coded clinical page. This behavior is explicitly part of the source.</p>
+<hr>
+<h1>34. FORM MODES</h1>
+<p>Every reusable form supports:</p>
+<pre><code class="language-text">Create
+View
+Edit
+</code></pre>
+<p>Where relevant:</p>
+<pre><code class="language-text">Draft
+Submit
+Lock
+Version
+Archive
+</code></pre>
+<hr>
+<h1>35. FORM VERSIONING — PRODUCT RULE</h1>
+<p>Published forms must be versioned.</p>
+<p>Example:</p>
+<pre><code class="language-text">Dental Examination v1
+Dental Examination v2
+</code></pre>
+<p>Old clinical records must remain associated with the version used when they were created.</p>
+<p>A new form version must NOT silently change old records.</p>
+<p>The master architecture requires versioning for forms and other configurable objects.</p>
+<hr>
+<h1>36. TREATMENT</h1>
+<p>Treatment is created from the clinical process.</p>
+<p>Example:</p>
+<pre><code class="language-text">Diagnosis
+ ↓
+Treatment
+ ↓
+Service
+</code></pre>
+<p>Example:</p>
+<pre><code class="language-text">Root Canal
+₹5,000
+</code></pre>
+<p>Treatment can connect to the configured service.</p>
+<hr>
+<h1>37. TREATMENT → BILLING</h1>
+<p>When a billable treatment/service is recorded:</p>
+<pre><code class="language-text">Treatment
+ ↓
+Billable Service
+ ↓
+Invoice Item
+</code></pre>
+<p>Clinical data and financial data must remain logically separate while remaining connected.</p>
+<p>This separation is explicitly required by the V1 source.</p>
+<hr>
+<h1>38. PRESCRIPTION</h1>
+<p>Prescription fields:</p>
+<pre><code class="language-text">Medicine
+Dose
+Frequency
+Duration
+Instructions
+</code></pre>
+<p>Possible actions:</p>
+<pre><code class="language-text">Add Medicine
+Edit
+Remove
+View
+Print
+Download
+</code></pre>
+<p>Prescription belongs to the Encounter/clinical context.</p>
+<p>Future Pharmacy may consume the same prescription.</p>
+<hr>
+<h1>39. BILLING &amp; PAYMENTS</h1>
+<p>This is one primary sidebar section.</p>
+<pre><code class="language-text">Billing &amp; Payments
+</code></pre>
+<p>Internal navigation:</p>
+<pre><code class="language-text">Invoices
+Payments
+Receipts
+Outstanding
+Refunds / Adjustments
+</code></pre>
+<hr>
+<h1>40. INVOICE</h1>
+<p>Invoice contains:</p>
+<pre><code class="language-text">Patient
+Encounter
+Branch
+Invoice Date
+Items
+Subtotal
+Discount
+Tax
+Total
+Paid
+Balance
+Status
+</code></pre>
+<p>Invoice items:</p>
+<pre><code class="language-text">Service
+Description
+Quantity
+Unit Price
+Discount
+Tax
+Total
+</code></pre>
+<hr>
+<h1>41. BILLING ACTIONS</h1>
+<pre><code class="language-text">Create
+View
+Edit
+Add Item
+Remove Item
+Apply Discount
+Receive Payment
+Print
+Download
+Void
+Refund
+View History
+</code></pre>
+<p>Permission controls which actions are visible.</p>
+<hr>
+<h1>42. PAYMENT</h1>
+<p>Payment fields:</p>
+<pre><code class="language-text">Patient
+Invoice
+Amount
+Payment Method
+Payment Date
+Reference Number
+Notes
+Attachment
+Status
+</code></pre>
+<p>Methods:</p>
+<pre><code class="language-text">Cash
+UPI
+Card
+Bank Transfer
+Online Gateway
+Other
+</code></pre>
+<hr>
+<h1>43. ONLINE PAYMENT</h1>
+<p>Flow:</p>
+<pre><code class="language-text">Invoice
+ ↓
+Pay Online
+ ↓
+Payment Gateway
+ ↓
+Callback / Webhook
+ ↓
+Payment Verification
+ ↓
+Payment
+ ↓
+Payment Allocation
+ ↓
+Invoice Balance Updated
+ ↓
+Receipt
+ ↓
+Notification
+</code></pre>
+<p>This is the defined V1 online payment flow.</p>
+<p>If payment fails:</p>
+<pre><code class="language-text">Payment = Failed / Pending
+</code></pre>
+<p>The original invoice must remain intact.</p>
+<hr>
+<h1>44. OFFLINE PAYMENT</h1>
+<p>Flow:</p>
+<pre><code class="language-text">Invoice
+ ↓
+Manual Payment
+ ↓
+Reference / Screenshot
+ ↓
+Document
+ ↓
+Payment Pending Verification
+ ↓
+Authorized User Verifies
+ ↓
+Payment Confirmed
+ ↓
+Receipt
+</code></pre>
+<p>This supports real-world clinics where payment may happen outside the system.</p>
+<hr>
+<h1>45. RECEIPT</h1>
+<p>Receipt contains:</p>
+<pre><code class="language-text">Receipt Number
+Patient
+Invoice
+Payment
+Amount
+Payment Method
+Date
+Reference
+Branch
+</code></pre>
+<p>Actions:</p>
+<pre><code class="language-text">View
+Print
+Download
+Send
+</code></pre>
+<hr>
+<h1>46. DOCUMENTS &amp; FOLLOW-UPS</h1>
+<p>Primary sidebar:</p>
+<pre><code class="language-text">Documents &amp; Follow-ups
+</code></pre>
+<p>Internal sections:</p>
+<pre><code class="language-text">Documents
+Follow-ups
+</code></pre>
+<hr>
+<h1>47. DOCUMENTS</h1>
+<p>Document actions:</p>
+<pre><code class="language-text">Upload
+View
+Download
+Replace / New Version
+Archive
+View History
+</code></pre>
+<p>Documents can be associated with:</p>
+<pre><code class="language-text">Patient
+Encounter
+Treatment
+Invoice
+Payment
+</code></pre>
+<hr>
+<h1>48. FOLLOW-UP</h1>
+<p>Follow-up form:</p>
+<pre><code class="language-text">Patient
+Related Encounter
+Date
+Purpose
+Provider
+Notes
+Status
+</code></pre>
+<p>Actions:</p>
+<pre><code class="language-text">Create
+View
+Edit
+Complete
+Reschedule
+Create Appointment
+</code></pre>
+<hr>
+<h1>49. NOTIFICATIONS</h1>
+<p>Notifications are configuration-driven.</p>
+<p>Possible events:</p>
+<pre><code class="language-text">Appointment Created
+Appointment Confirmed
+Appointment Rescheduled
+Appointment Cancelled
+Payment Received
+Receipt Generated
+Follow-up Due
+Document Available
+</code></pre>
+<p>Possible channels:</p>
+<pre><code class="language-text">In-App
+SMS
+Email
+WhatsApp
+</code></pre>
+<p>Which channel executes depends on configured notification rules/templates.</p>
+<hr>
+<h1>50. REPORTS</h1>
+<p>Primary sidebar:</p>
+<pre><code class="language-text">Reports
+</code></pre>
+<p>Categories:</p>
+<pre><code class="language-text">Operational
+Patients
+Appointments
+Clinical
+Treatment
+Billing
+Payments
+Revenue
+Outstanding
+</code></pre>
+<hr>
+<h2>50.1 Report flow</h2>
+<pre><code class="language-text">Reports
+ ↓
+Select Report
+ ↓
+Filters
+ ↓
+Generate
+ ↓
+Table / Chart
+ ↓
+Export
+</code></pre>
+<p>Filters may include:</p>
+<pre><code class="language-text">Date
+Branch
+Department
+Provider
+Service
+Payment Status
+Patient
+</code></pre>
+<p>Reports must respect user authorization.</p>
+<hr>
+<h1>51. IMPORT</h1>
+<p>Administration:</p>
+<pre><code class="language-text">Import / Export
+</code></pre>
+<p>Import flow:</p>
+<pre><code class="language-text">Import
+ ↓
+Select Entity
+ ↓
+Upload CSV / Excel
+ ↓
+Map Fields
+ ↓
+Validate
+ ↓
+Preview
+ ↓
+Confirm
+ ↓
+Import
+</code></pre>
+<p>Import must behave like a normal business operation from the user's perspective.</p>
+<hr>
+<h1>52. EXPORT</h1>
+<pre><code class="language-text">Export
+ ↓
+Select Data
+ ↓
+Filters
+ ↓
+Permission Check
+ ↓
+Generate
+ ↓
+Download
+</code></pre>
+<p>Export is auditable.</p>
+<hr>
+<h1>53. ADMINISTRATION</h1>
+<p>Administration contains configuration rather than daily patient operations.</p>
+<pre><code class="language-text">Administration
+│
+├── Organization
+├── Branches &amp; Departments
+├── Staff &amp; Users
+├── Roles &amp; Permissions
+├── Services
+├── Forms
+├── Workflows
+├── Modules &amp; Features
+├── Notifications &amp; Templates
+├── Dashboard Configuration
+├── Import / Export
+├── Audit &amp; Activity
+└── System Configuration
+</code></pre>
+<hr>
+<h1>54. ORGANIZATION</h1>
+<p>Hierarchy:</p>
+<pre><code class="language-text">Organization
+ ↓
+Branch
+ ↓
+Department
+ ↓
+Unit
+ ↓
+Resource
+</code></pre>
+<p>Single doctor:</p>
+<pre><code class="language-text">Organization
+└── Main Location
+</code></pre>
+<p>Hospital:</p>
+<pre><code class="language-text">Organization
+├── Branch A
+│   ├── OPD
+│   ├── Dental
+│   └── Lab
+└── Branch B
+    ├── OPD
+    └── Dental
+</code></pre>
+<p>This same model supports both small and large organizations.</p>
+<hr>
+<h1>55. STAFF &amp; USERS</h1>
+<p>Staff creation must support:</p>
+<pre><code class="language-text">Person
+ ↓
+User Account
+ ↓
+Organization
+ ↓
+Branch
+ ↓
+Department
+ ↓
+Role
+ ↓
+Permissions
+</code></pre>
+<p>Staff types are not permanently hard-coded.</p>
+<hr>
+<h1>56. ROLES</h1>
+<p>Roles are configurable.</p>
+<p>Examples:</p>
+<pre><code class="language-text">Admin
+Doctor
+Receptionist
+Billing Staff
+Nurse
+Manager
+Custom Role
+</code></pre>
+<p>But the product must not assume these are the only roles.</p>
+<hr>
+<h1>57. PERMISSIONS</h1>
+<p>Permission examples:</p>
+<pre><code class="language-text">patient.view
+patient.create
+patient.edit
+
+appointment.view
+appointment.create
+appointment.edit
+appointment.cancel
+
+queue.view
+queue.manage
+
+clinical.view
+clinical.create
+clinical.edit
+
+billing.view
+billing.create
+billing.edit
+billing.refund
+
+payment.view
+payment.create
+payment.verify
+
+document.view
+document.upload
+
+report.view
+report.export
+</code></pre>
+<p>The source explicitly requires granular database-driven permissions rather than fixed roles.</p>
+<hr>
+<h1>58. ROLE-BASED UI</h1>
+<p>Example:</p>
+<p>Doctor:</p>
+<pre><code class="language-text">Clinical = visible
+Billing = limited
+Administration = hidden
+</code></pre>
+<p>Receptionist:</p>
+<pre><code class="language-text">Patients = visible
+Appointments = visible
+Queue = visible
+Clinical = limited
+Billing = visible
+</code></pre>
+<p>Billing staff:</p>
+<pre><code class="language-text">Billing = visible
+Payments = visible
+Clinical = limited
+</code></pre>
+<p>Admin:</p>
+<pre><code class="language-text">All permitted areas
+Administration
+</code></pre>
+<p>The backend remains the final authority for permission.</p>
+<hr>
+<h1>59. SERVICES</h1>
+<p>Administration:</p>
+<pre><code class="language-text">Services
+</code></pre>
+<p>Service fields:</p>
+<pre><code class="language-text">Service ID
+Name
+Category
+Department
+Duration
+Price
+Tax
+Required Workflow
+Required Form
+Required Role
+Inventory Consumption
+Billing Rules
+Status
+</code></pre>
+<p>These attributes are explicitly part of the master V1 architecture.</p>
+<hr>
+<h1>60. SERVICE EXAMPLES</h1>
+<pre><code class="language-text">General Consultation
+Dental Consultation
+Dental Cleaning
+Root Canal
+X-Ray
+CBC
+Physiotherapy Session
+Room Charge
+</code></pre>
+<p>The same service engine can support future V2 services without rebuilding the core.</p>
+<hr>
+<h1>61. SERVICE → FORM</h1>
+<p>A service can define:</p>
+<pre><code class="language-text">Required Form
+</code></pre>
+<p>Example:</p>
+<pre><code class="language-text">Root Canal
+ ↓
+Dental Examination Form
+</code></pre>
+<p>General Consultation:</p>
+<pre><code class="language-text">General Consultation
+ ↓
+General Clinical Form
+</code></pre>
+<hr>
+<h1>62. SERVICE → WORKFLOW</h1>
+<p>A service can define:</p>
+<pre><code class="language-text">Required Workflow
+</code></pre>
+<p>Example:</p>
+<pre><code class="language-text">Dental Cleaning
+ ↓
+Consultation
+ ↓
+Procedure
+ ↓
+Billing
+</code></pre>
+<hr>
+<h1>63. WORKFLOW BUILDER</h1>
+<p>Administration:</p>
+<pre><code class="language-text">Workflows
+</code></pre>
+<p>Internal:</p>
+<pre><code class="language-text">Workflow List
+Workflow Builder
+Versions
+</code></pre>
+<p>Workflow consists conceptually of:</p>
+<pre><code class="language-text">Workflow
+Workflow Version
+Steps
+Transitions
+Conditions
+Actions
+</code></pre>
+<p>This is explicitly defined in the source.</p>
+<hr>
+<h1>64. WORKFLOW EXAMPLE</h1>
+<p>Default:</p>
+<pre><code class="language-text">Patient Registration
+ ↓
+Appointment
+ ↓
+Check-in
+ ↓
+Consultation
+ ↓
+Billing
+ ↓
+Follow-up
+</code></pre>
+<p>A business can configure another flow:</p>
+<pre><code class="language-text">Consultation
+ ↓
+Lab Test
+ ↓
+Doctor Review
+ ↓
+Billing
+</code></pre>
+<p>The flow should be configurable rather than hard-coded.</p>
+<hr>
+<h1>65. MODULES &amp; FEATURES</h1>
+<p>Administration:</p>
+<pre><code class="language-text">Modules &amp; Features
+</code></pre>
+<p>Examples:</p>
+<pre><code class="language-text">Queue = ON
+Dental Chart = ON
+IPD = OFF
+Lab = OFF
+Pharmacy = OFF
+</code></pre>
+<p>Hospital:</p>
+<pre><code class="language-text">Queue = ON
+Dental Chart = OFF
+IPD = ON
+Lab = ON
+Pharmacy = ON
+OT = ON
+</code></pre>
+<p>The system must never hard-code these ON/OFF decisions. Configuration is database-driven.</p>
+<hr>
+<h1>66. DYNAMIC DASHBOARD CONFIGURATION</h1>
+<p>Admin can configure:</p>
+<pre><code class="language-text">Widget
+Position
+Visibility
+Role
+Branch
+Module
+Order
+</code></pre>
+<p>The dashboard therefore changes according to business configuration.</p>
+<hr>
+<h1>67. NOTIFICATION &amp; TEMPLATE ADMINISTRATION</h1>
+<p>Admin can manage:</p>
+<pre><code class="language-text">Templates
+Notification Rules
+Channels
+Status
+</code></pre>
+<p>Templates can be associated with events such as:</p>
+<pre><code class="language-text">Appointment Created
+Payment Received
+Follow-up Due
+Receipt Generated
+</code></pre>
+<hr>
+<h1>68. AUDIT &amp; ACTIVITY</h1>
+<p>Administration:</p>
+<pre><code class="language-text">Audit &amp; Activity
+</code></pre>
+<p>Every important action should be traceable:</p>
+<pre><code class="language-text">Who
+What
+When
+Entity
+Old Value
+New Value
+Reason
+</code></pre>
+<p>Example:</p>
+<pre><code class="language-text">Invoice
+₹5000 → ₹4500
+
+Changed By:
+User A
+
+Time:
+...
+
+Reason:
+Discount
+</code></pre>
+<p>This is the defined audit behavior.</p>
+<hr>
+<h1>69. SETTINGS</h1>
+<p>Settings is user/system preference territory.</p>
+<p>User settings:</p>
+<pre><code class="language-text">Profile
+Password
+Language
+Theme
+Notification Preferences
+Default Branch
+Preferences
+</code></pre>
+<p>Administrative business configuration remains inside Administration.</p>
+<hr>
+<h1>70. STANDARD DETAIL SCREEN</h1>
+<p>Every major entity detail page follows a common pattern:</p>
+<pre><code class="language-text">← Back
+
+Entity Name
+Entity ID
+Status
+
+[Primary Action]
+[Edit]
+[More]
+
+────────────────────
+
+Overview
+Related Data
+History
+</code></pre>
+<hr>
+<h1>71. BACK BUTTON RULE</h1>
+<p>Back must return the user to the logical previous context.</p>
+<p>Example:</p>
+<pre><code class="language-text">Patients
+ ↓
+Patient Profile
+ ↓
+Appointment
+</code></pre>
+<p>Back:</p>
+<pre><code class="language-text">Appointment
+ ↓
+Patient Profile
+</code></pre>
+<p>Not automatically Dashboard.</p>
+<p>If the user came from:</p>
+<pre><code class="language-text">Appointments
+ ↓
+Appointment Detail
+</code></pre>
+<p>then:</p>
+<pre><code class="language-text">Back → Appointments
+</code></pre>
+<p>Navigation must preserve context.</p>
+<hr>
+<h1>72. VIEW / EDIT RULE</h1>
+<p>Every major entity should support:</p>
+<pre><code class="language-text">View
+Edit
+History
+</code></pre>
+<p>Where business rules allow:</p>
+<pre><code class="language-text">Archive
+Cancel
+Void
+Refund
+Restore
+Duplicate
+Print
+Export
+</code></pre>
+<hr>
+<h1>73. DELETE RULE</h1>
+<p>Healthcare records should not normally use destructive hard delete.</p>
+<p>Use:</p>
+<pre><code class="language-text">Archive
+Deactivate
+Cancel
+Void
+Soft Delete
+</code></pre>
+<p>Sensitive records follow retention policies.</p>
+<p>The source explicitly establishes soft-delete/archival behavior.</p>
+<hr>
+<h1>74. MORE MENU RULE</h1>
+<p>Do not fill the screen with buttons.</p>
+<p>Primary actions stay visible.</p>
+<p>Secondary actions go inside:</p>
+<pre><code class="language-text">⋮ More
+</code></pre>
+<p>Possible:</p>
+<pre><code class="language-text">Duplicate
+Archive
+Cancel
+Void
+History
+Audit
+Print
+Export
+</code></pre>
+<p>Available actions depend on entity state and permission.</p>
+<hr>
+<h1>75. STATUS BEHAVIOR</h1>
+<p>Statuses are part of business workflows.</p>
+<p>Common statuses:</p>
+<pre><code class="language-text">Draft
+Active
+Pending
+Approved
+Rejected
+Completed
+Cancelled
+Archived
+</code></pre>
+<p>Business-specific workflows can define their own states.</p>
+<hr>
+<h1>76. CORE CONNECTIVITY</h1>
+<p>The entire V1 must behave as one connected product.</p>
+<pre><code class="language-text">Organization
+      ↓
+User / Role / Permission
+      ↓
+Patient
+      ↓
+Appointment
+      ↓
+Check-in
+      ↓
+Encounter
+      ↓
+Queue
+      ↓
+Clinical
+      ↓
+Treatment
+      ↓
+Prescription
+      ↓
+Service
+      ↓
+Invoice
+      ↓
+Payment
+      ↓
+Receipt
+      ↓
+Document
+      ↓
+Follow-up
+      ↓
+Notification
+      ↓
+Report / Audit
+</code></pre>
+<p>The source's master connectivity graph follows this same business sequence.</p>
+<hr>
+<h1>77. REAL-LIFE COMPLETE USER FLOW</h1>
+<p>Reception:</p>
+<pre><code class="language-text">New Patient
+ ↓
+Person Created
+ ↓
+Patient Created
+ ↓
+Appointment
+ ↓
+Reminder
+ ↓
+Check-in
+ ↓
+Encounter Created
+ ↓
+Queue
+</code></pre>
+<p>Doctor:</p>
+<pre><code class="language-text">Queue
+ ↓
+Open Patient
+ ↓
+Dynamic Clinical Form
+ ↓
+Clinical Record
+ ↓
+Treatment
+ ↓
+Prescription
+</code></pre>
+<p>Billing:</p>
+<pre><code class="language-text">Treatment / Service
+ ↓
+Invoice
+ ↓
+Payment
+ ↓
+Receipt
+</code></pre>
+<p>Aftercare:</p>
+<pre><code class="language-text">Follow-up
+ ↓
+Notification
+ ↓
+Appointment
+</code></pre>
+<p>System:</p>
+<pre><code class="language-text">Audit
++
+Reports
+</code></pre>
+<p>This is the complete V1 business loop.</p>
+<hr>
+<h1>78. SCREEN ≠ DATABASE ENTITY</h1>
+<p>The UI must be designed around the user's business journey, not around database tables.</p>
+<p>For example:</p>
+<pre><code class="language-text">Patient Profile
+</code></pre>
+<p>may display:</p>
+<pre><code class="language-text">Person
+Patient
+Appointment
+Encounter
+Clinical Record
+Treatment
+Prescription
+Invoice
+Payment
+Document
+Follow-up
+</code></pre>
+<p>as one connected experience.</p>
+<p>The source explicitly establishes this rule.</p>
+<hr>
+<h1>79. DYNAMICITY RULE</h1>
+<p>“Dynamic” does NOT mean putting the whole application into arbitrary JSON.</p>
+<p>Core business entities remain structured:</p>
+<pre><code class="language-text">Organization
+User
+Patient
+Appointment
+Encounter
+Invoice
+Payment
+</code></pre>
+<p>Dynamic configuration is used for:</p>
+<pre><code class="language-text">Fields
+Forms
+Sections
+Workflow
+Rules
+Services
+Screens
+Templates
+Notifications
+Configurations
+</code></pre>
+<p>This distinction is explicitly required by the V1 architecture.</p>
+<hr>
+<h1>80. ORGANIZATION CUSTOMIZATION</h1>
+<p>Each organization can configure:</p>
+<pre><code class="language-text">Organization Name
+Logo
+Branches
+Departments
+Services
+Providers
+Roles
+Permissions
+Modules
+Features
+Forms
+Workflows
+Templates
+Notifications
+Dashboard
+</code></pre>
+<p>One organization must not affect another organization's configuration.</p>
+<hr>
+<h1>81. BRANCH CUSTOMIZATION</h1>
+<p>Different branches may have:</p>
+<pre><code class="language-text">Different Services
+Different Providers
+Different Forms
+Different Workflows
+Different Prices
+Different Queues
+Different Dashboard Widgets
+Different Notifications
+</code></pre>
+<p>while sharing the same organization.</p>
+<hr>
+<h1>82. ROLE CUSTOMIZATION</h1>
+<p>A business can create:</p>
+<pre><code class="language-text">Custom Role
+</code></pre>
+<p>and choose:</p>
+<pre><code class="language-text">Module Access
+View
+Create
+Edit
+Delete/Archive
+Approve
+Verify
+Export
+</code></pre>
+<hr>
+<h1>83. FORM CUSTOMIZATION</h1>
+<p>Organization-specific forms must not require source-code changes.</p>
+<p>Example:</p>
+<pre><code class="language-text">Clinic A
+General Consultation v1
+</code></pre>
+<p>Dental clinic:</p>
+<pre><code class="language-text">Clinic B
+Dental Examination v1
+</code></pre>
+<p>Specialty centre:</p>
+<pre><code class="language-text">Clinic C
+Specialty Assessment v1
+</code></pre>
+<p>Same form engine.</p>
+<hr>
+<h1>84. WORKFLOW CUSTOMIZATION</h1>
+<p>Different organizations may use different workflows.</p>
+<p>Example:</p>
+<pre><code class="language-text">Clinic A:
+Appointment → Consultation → Billing
+
+Clinic B:
+Appointment → Check-in → Queue → Consultation → Billing
+
+Clinic C:
+Appointment → Consultation → Lab → Review → Billing
+</code></pre>
+<p>The same product must support these through configuration.</p>
+<hr>
+<h1>85. SERVICE CUSTOMIZATION</h1>
+<p>Organization can define:</p>
+<pre><code class="language-text">Service
+Price
+Duration
+Department
+Provider
+Required Form
+Required Workflow
+Billing Rule
+</code></pre>
+<hr>
+<h1>86. FUTURE V2 COMPATIBILITY FROM PRODUCT SIDE</h1>
+<p>V2 is not a replacement application.</p>
+<p>V2 adds modules to the same core:</p>
+<pre><code class="language-text">V1 Core
++
+V2 Modules
+</code></pre>
+<p>Examples:</p>
+<pre><code class="language-text">IPD
+Pharmacy
+Lab
+Inventory
+Insurance
+</code></pre>
+<p>These must use the existing:</p>
+<pre><code class="language-text">Patient
+Encounter
+Service
+Workflow
+Transaction
+Document
+User
+Organization
+</code></pre>
+<p>instead of creating duplicate systems.</p>
+<p>This is explicitly the V1→V2 product rule.</p>
+<hr>
+<h1>87. FUTURE V3 COMPATIBILITY</h1>
+<p>V3 continues the same core:</p>
+<pre><code class="language-text">CORE
+ ├── V1
+ ├── V2
+ └── V3
+</code></pre>
+<p>Possible V3 additions:</p>
+<pre><code class="language-text">AI
+Advanced Analytics
+Enterprise
+Interoperability
+Advanced Hospital Operations
+</code></pre>
+<p>Core business identity and records remain shared.</p>
+<hr>
+<h1>88. V1 MUST NOT INCLUDE THESE HEAVY MODULES</h1>
+<p>V1 should NOT become unnecessarily huge.</p>
+<p>Not full V1 modules:</p>
+<pre><code class="language-text">Full IPD
+Full OT
+Blood Bank
+Ambulance
+Advanced ICU
+Full Insurance / TPA
+Full Pharmacy
+Advanced Procurement
+Advanced Accounting
+Advanced AI
+Advanced Multi-branch Analytics
+</code></pre>
+<p>But their future extension points must not be blocked.</p>
+<p>The source explicitly distinguishes “feature not in V1” from “architecture not ready for V2.”</p>
+<hr>
+<h1>89. V1 MUST INCLUDE</h1>
+<p>The V1 product must cover:</p>
+<pre><code class="language-text">1. Business Setup
+2. Branch / Location
+3. Users
+4. Roles
+5. Permissions
+6. Patients
+7. Appointments
+8. Queue
+9. Encounter / Visit
+10. Consultation
+11. Dynamic Clinical Forms
+12. Service Catalogue
+13. Treatment
+14. Prescription
+15. Billing
+16. Payment
+17. Receipt
+18. Documents
+19. Follow-up
+20. Notifications
+21. Reports
+22. Dashboard
+23. Audit
+24. Offline / Sync Foundation
+25. Import / Export
+26. API Foundation
+</code></pre>
+<p>This is the defined V1 mandatory product scope.</p>
+<hr>
+<h1>90. V1 USER EXPERIENCE PRINCIPLES</h1>
+<p>The product must feel:</p>
+<pre><code class="language-text">Simple
+Fast
+Connected
+Professional
+Configurable
+Role-aware
+Business-oriented
+</code></pre>
+<p>It must NOT feel like:</p>
+<pre><code class="language-text">Many disconnected CRUD screens
+Database administration panel
+Developer tool
+Overloaded ERP
+</code></pre>
+<hr>
+<h1>91. CONSISTENT CRUD EXPERIENCE</h1>
+<p>For every major entity:</p>
+<pre><code class="language-text">List
+ ↓
+View
+ ↓
+Edit
+ ↓
+History
+</code></pre>
+<p>and where applicable:</p>
+<pre><code class="language-text">Create
+Archive
+Cancel
+Void
+Restore
+Print
+Export
+</code></pre>
+<hr>
+<h1>92. CONTEXTUAL ACTIONS</h1>
+<p>The product should show actions where they make sense.</p>
+<p>Example Patient:</p>
+<pre><code class="language-text">Book Appointment
+</code></pre>
+<p>Example Appointment:</p>
+<pre><code class="language-text">Check-in
+</code></pre>
+<p>Example Queue:</p>
+<pre><code class="language-text">Start Consultation
+</code></pre>
+<p>Example Encounter:</p>
+<pre><code class="language-text">Add Treatment
+Add Prescription
+Complete
+</code></pre>
+<p>Example Invoice:</p>
+<pre><code class="language-text">Receive Payment
+</code></pre>
+<p>Example Payment:</p>
+<pre><code class="language-text">View Receipt
+</code></pre>
+<p>This keeps the workflow connected and reduces unnecessary navigation.</p>
+<hr>
+<h1>93. NO DEAD-END SCREENS</h1>
+<p>Every major screen must provide logical next actions.</p>
+<p>Example:</p>
+<pre><code class="language-text">Patient Created
+</code></pre>
+<p>should allow:</p>
+<pre><code class="language-text">Book Appointment
+Walk-in
+View Patient
+</code></pre>
+<p>Appointment:</p>
+<pre><code class="language-text">Check-in
+</code></pre>
+<p>Encounter:</p>
+<pre><code class="language-text">Clinical
+Treatment
+Prescription
+</code></pre>
+<p>Invoice:</p>
+<pre><code class="language-text">Payment
+</code></pre>
+<p>Payment:</p>
+<pre><code class="language-text">Receipt
+</code></pre>
+<p>Follow-up:</p>
+<pre><code class="language-text">Appointment
+</code></pre>
+<hr>
+<h1>94. SEARCH</h1>
+<p>Search must be available where operationally useful.</p>
+<p>Patient search:</p>
+<pre><code class="language-text">Patient ID
+Name
+Phone
+Email
+</code></pre>
+<p>Appointment search:</p>
+<pre><code class="language-text">Patient
+Provider
+Date
+Status
+</code></pre>
+<p>Invoice:</p>
+<pre><code class="language-text">Invoice ID
+Patient
+Date
+Status
+</code></pre>
+<p>Payment:</p>
+<pre><code class="language-text">Payment ID
+Patient
+Invoice
+Reference
+</code></pre>
+<hr>
+<h1>95. FILTERING</h1>
+<p>All large lists should support:</p>
+<pre><code class="language-text">Search
+Filter
+Sort
+Pagination
+Status Filter
+Date Filter
+Branch Filter
+Provider Filter
+</code></pre>
+<p>Available filters depend on the entity.</p>
+<hr>
+<h1>96. EMPTY STATES</h1>
+<p>Every screen must have useful empty states.</p>
+<p>Example:</p>
+<pre><code class="language-text">No appointments today.
+
+[Create Appointment]
+</code></pre>
+<p>Not just:</p>
+<pre><code class="language-text">No Data
+</code></pre>
+<hr>
+<h1>97. ERROR STATES</h1>
+<p>Errors must explain:</p>
+<pre><code class="language-text">What happened
+Why it happened
+What the user can do next
+</code></pre>
+<p>Example:</p>
+<pre><code class="language-text">Payment could not be completed.
+
+The gateway did not confirm the transaction.
+
+[Retry Payment]
+[View Invoice]
+</code></pre>
+<hr>
+<h1>98. SUCCESS STATES</h1>
+<p>After an action:</p>
+<pre><code class="language-text">Patient Created
+Appointment Confirmed
+Payment Received
+Receipt Generated
+</code></pre>
+<p>show confirmation and next useful actions.</p>
+<hr>
+<h1>99. ROLE-SAFE UI</h1>
+<p>If a user cannot perform an action:</p>
+<p>Prefer hiding the action when appropriate.</p>
+<p>If the action is visible but unauthorized:</p>
+<pre><code class="language-text">You do not have permission to perform this action.
+</code></pre>
+<p>Backend authorization remains authoritative.</p>
+<hr>
+<h1>100. V1 PRODUCT COMPLETION CRITERIA</h1>
+<p>V1 is product-complete when a real small healthcare business can perform:</p>
+<pre><code class="language-text">Business Setup
+ ↓
+Create Staff
+ ↓
+Assign Roles
+ ↓
+Configure Services
+ ↓
+Configure Form
+ ↓
+Configure Workflow
+ ↓
+Create Patient
+ ↓
+Appointment / Walk-in
+ ↓
+Check-in
+ ↓
+Queue
+ ↓
+Consultation
+ ↓
+Clinical Record
+ ↓
+Treatment / Prescription
+ ↓
+Invoice
+ ↓
+Online or Offline Payment
+ ↓
+Receipt
+ ↓
+Document
+ ↓
+Follow-up
+ ↓
+Notification
+ ↓
+Report
+ ↓
+Audit
+</code></pre>
+<p>and the complete process remains connected.</p>
+<p>The source defines this complete cycle as the condition for V1 completion.</p>
+<hr>
+<h1>101. V1 PRODUCT NON-NEGOTIABLES</h1>
+<h2>Rule 1</h2>
+<p>Do not create separate software logic for:</p>
+<pre><code class="language-text">Clinic
+Dental
+Hospital
+Diagnostic
+</code></pre>
+<hr>
+<h2>Rule 2</h2>
+<p>Do not hard-code:</p>
+<pre><code class="language-text">Roles
+Forms
+Workflows
+Services
+Dashboard
+Modules
+Features
+Notifications
+</code></pre>
+<p>where configuration is intended.</p>
+<hr>
+<h2>Rule 3</h2>
+<p>Do not create duplicate:</p>
+<pre><code class="language-text">Patient
+User
+Billing
+Document
+</code></pre>
+<p>systems for future modules.</p>
+<hr>
+<h2>Rule 4</h2>
+<p>Do not design UI around database tables.</p>
+<p>Design around user/business journeys.</p>
+<hr>
+<h2>Rule 5</h2>
+<p>Do not silently change V1 product behavior for implementation convenience.</p>
+<hr>
+<h1>102. V1 → V2/V3 PRODUCT COMPATIBILITY CONTRACT</h1>
+<p>The following concepts must remain stable:</p>
+<pre><code class="language-text">Identity
+Organization
+User
+Role
+Permission
+Patient Identity
+Service
+Workflow
+Form
+Document
+Transaction
+Event
+Audit
+API conventions
+Error conventions
+Versioning
+Time/Date behavior
+Currency behavior
+Localization
+Security model
+</code></pre>
+<p>The source explicitly defines these as the common V1/V2/V3 compatibility foundation.</p>
+<hr>
+<h1>103. API / EVENT PRODUCT EXPECTATION</h1>
+<p>From the product perspective, future versions must be able to consume the same business events.</p>
+<p>Example:</p>
+<pre><code class="language-text">payment.received.v1
+</code></pre>
+<p>Future V2/V3 systems can subscribe without changing the original payment user journey.</p>
+<p>APIs are versioned:</p>
+<pre><code class="language-text">/api/v1/...
+</code></pre>
+<p>Future:</p>
+<pre><code class="language-text">/api/v2/...
+</code></pre>
+<p>Old clients should not be immediately broken.</p>
+<hr>
+<h1>104. PRODUCT VERSIONING</h1>
+<p>Version-sensitive objects include:</p>
+<pre><code class="language-text">Forms
+Workflows
+Services
+Templates
+Price Lists
+Documents
+Configurations
+</code></pre>
+<p>When a new version is published, old records remain tied to the version they were created under.</p>
+<p>This prevents historical records from silently changing.</p>
+<hr>
+<h1>105. OFFLINE PRODUCT BEHAVIOR</h1>
+<p>V1 must have a basic offline/sync foundation.</p>
+<p>Conceptually:</p>
+<pre><code class="language-text">Local Data
+ ↓
+Sync Queue
+ ↓
+Server
+</code></pre>
+<p>Each mutation must be uniquely identifiable so that the same operation is not processed twice.</p>
+<p>The source defines operation ID, entity ID/version, timestamp, device ID, user ID and operation type as the basic mutation information.</p>
+<hr>
+<h1>106. OFFLINE CONFLICT PRODUCT BEHAVIOR</h1>
+<p>When two devices change the same data:</p>
+<pre><code class="language-text">Conflict Detected
+</code></pre>
+<p>Supported policy concepts:</p>
+<pre><code class="language-text">Last Write
+Server Wins
+User Resolution
+Field-level Merge
+</code></pre>
+<p>The policy can vary by entity.</p>
+<hr>
+<h1>107. V1 PRODUCT PHILOSOPHY</h1>
+<p>The purpose of V1 is NOT:</p>
+<blockquote>
+<p>“Build every hospital feature now.”</p>
+</blockquote>
+<p>The purpose is:</p>
+<blockquote>
+<p>“Build the complete healthcare business core now, and make future modules attach to that core.”</p>
+</blockquote>
+<p>Therefore:</p>
+<pre><code class="language-text">V1 = Complete Core + Real Business
+V2 = New Modules on Same Core
+V3 = Advanced Capabilities on Same Core
+</code></pre>
+<hr>
+<h1>108. FINAL V1 MASTER FLOW</h1>
+<pre><code class="language-text">                         ORGANIZATION
+                              │
+                              ▼
+                     USER / ROLE / PERMISSION
+                              │
+                              ▼
+                         DASHBOARD
+                              │
+             ┌────────────────┼────────────────┐
+             ▼                ▼                ▼
+          PATIENT        APPOINTMENT       BILLING
+             │                │
+             ▼                ▼
+      PATIENT PROFILE       QUEUE
+             │                │
+             └────────┬───────┘
+                      ▼
+                  ENCOUNTER
+                      │
+          ┌───────────┼───────────┐
+          ▼           ▼           ▼
+      CLINICAL      SERVICE     DOCUMENT
+        FORM           │
+          │            ▼
+          │         TREATMENT
+          │            │
+          │            ▼
+          │       PRESCRIPTION
+          │            │
+          └──────┬─────┘
+                 ▼
+               BILL
+                 │
+          ┌──────┴──────┐
+          ▼             ▼
+       PAYMENT       DOCUMENT
+          │
+          ▼
+       RECEIPT
+          │
+          ▼
+      FOLLOW-UP
+          │
+          ▼
+    NOTIFICATION
+          │
+          ▼
+   REPORT / AUDIT
+</code></pre>
+<hr>
+<h1>109. FINAL SIDEBAR — FROZEN FOR V1</h1>
+<pre><code class="language-text">🏠 Dashboard
+
+👤 Patients
+
+📅 Appointments
+
+⏱ Queue
+
+🩺 Clinical
+
+💰 Billing &amp; Payments
+
+📁 Documents &amp; Follow-ups
+
+📊 Reports
+
+────────────────────
+
+⚙ Administration
+
+   ├── Organization
+   ├── Branches &amp; Departments
+   ├── Staff &amp; Users
+   ├── Roles &amp; Permissions
+   ├── Services
+   ├── Forms
+   ├── Workflows
+   ├── Modules &amp; Features
+   ├── Notifications &amp; Templates
+   ├── Dashboard Configuration
+   ├── Import / Export
+   ├── Audit &amp; Activity
+   └── System Configuration
+
+⚙ Settings
+</code></pre>
+<p><strong>Do not add unnecessary primary sidebar modules.</strong></p>
+<p>New functionality should normally be placed inside an existing primary section, Patient Profile, Administration, contextual action, or dynamic configuration layer.</p>
+<hr>
+<h1>110. FINAL PRODUCT RULE</h1>
+<p>V1 must feel like <strong>one software</strong>, not a collection of separate modules.</p>
+<p>The user should be able to move naturally:</p>
+<pre><code class="language-text">Patient
+ ↓
+Appointment
+ ↓
+Queue
+ ↓
+Encounter
+ ↓
+Clinical
+ ↓
+Treatment
+ ↓
+Bill
+ ↓
+Payment
+ ↓
+Receipt
+ ↓
+Follow-up
+</code></pre>
+<p>without manually reconnecting records.</p>
+<p>At the same time:</p>
+<pre><code class="language-text">Organization
+Role
+Permission
+Service
+Form
+Workflow
+Module
+Feature
+Template
+Dashboard
+</code></pre>
+<p>must determine how that journey behaves for each business.</p>
+<hr>
+<h1>111. SOURCE-OF-TRUTH STATEMENT</h1>
+<p>This document defines the V1 PRODUCT behavior.</p>
+<p>The next document must translate this specification into:</p>
+<pre><code class="language-text">Frontend Architecture
+Backend Architecture
+MongoDB Data Model
+Entity Relationships
+API Contracts
+Event Contracts
+RBAC Implementation
+Dynamic Form Engine
+Workflow Engine
+Audit
+Offline / Sync
+Security
+Versioning
+V2/V3 Extension Contracts
+</code></pre>
+<p>without changing the product behavior defined here.</p>
+<p>Then Document 3 will convert that architecture into:</p>
+<pre><code class="language-text">Development Phases
+Dependencies
+Tasks
+Acceptance Criteria
+Tests
+E2E Scenarios
+Seed Data
+Definition of Done
+Deployment
+</code></pre>
+<p>Final hierarchy:</p>
+<pre><code class="language-text">V1_MASTER_PRODUCT_SPEC
+          ↓
+V1_TECHNICAL_ARCHITECTURE
+          ↓
+V1_IMPLEMENTATION_PLAN
+          ↓
+CODE
+          ↓
+TESTS
+</code></pre>
+<p><strong>No silent architectural drift.</strong></p>
+<p><strong>No duplicate core systems.</strong></p>
+<p><strong>No hard-coded business-specific workflows where configuration is required.</strong></p>
+<p><strong>No V2/V3 rewrite of the V1 core.</strong></p>
+<p><strong>V1 must independently operate a real healthcare business while remaining extensible for V2 and V3.</strong></p></body></html>

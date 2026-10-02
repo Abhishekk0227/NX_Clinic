@@ -1,0 +1,2194 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Text To Word</title></head><body><h1>V1_IMPLEMENTATION_PLAN</h1>
+<p><strong>Product:</strong> Dynamic Hospital &amp; Healthcare Management System<br><strong>Version:</strong> V1<br><strong>Stack:</strong> MERN<br><strong>Implementation Target:</strong> Production-ready V1<br><strong>Future Compatibility:</strong> V2 + V3 merge-compatible<br><strong>Status:</strong> Master Implementation Specification</p>
+<hr>
+<h1>1. PURPOSE OF THIS DOCUMENT</h1>
+<p>This document defines <strong>how V1 will be developed and validated</strong>.</p>
+<p>It does not redefine the product features or technical architecture.</p>
+<p>The hierarchy is:</p>
+<pre><code class="language-text">V1_MASTER_PRODUCT_SPEC
+        ↓
+V1_TECHNICAL_ARCHITECTURE
+        ↓
+V1_IMPLEMENTATION_PLAN
+        ↓
+CODE
+        ↓
+TESTS
+        ↓
+PRODUCTION
+</code></pre>
+<p>If implementation conflicts with the Product Spec or Technical Architecture:</p>
+<pre><code class="language-text">DO NOT silently modify architecture.
+
+Identify conflict
+        ↓
+Resolve against Master Specification
+        ↓
+Update implementation
+        ↓
+Continue development
+</code></pre>
+<hr>
+<h1>2. V1 IMPLEMENTATION OBJECTIVE</h1>
+<p>V1 must be a complete, independently usable healthcare-management platform.</p>
+<p>It must support different organization sizes without creating separate software products.</p>
+<p>The same V1 must work for:</p>
+<ul>
+<li>
+<p>Single doctor</p>
+</li>
+<li>
+<p>Small clinic</p>
+</li>
+<li>
+<p>Dental clinic</p>
+</li>
+<li>
+<p>Multi-doctor clinic</p>
+</li>
+<li>
+<p>Nursing home</p>
+</li>
+<li>
+<p>Diagnostic centre</p>
+</li>
+<li>
+<p>Specialty clinic/hospital</p>
+</li>
+<li>
+<p>Hospital</p>
+</li>
+<li>
+<p>Multi-department organization</p>
+</li>
+<li>
+<p>Multi-branch organization</p>
+</li>
+</ul>
+<p>The system must adapt through:</p>
+<ul>
+<li>
+<p>Organization configuration</p>
+</li>
+<li>
+<p>Roles</p>
+</li>
+<li>
+<p>Permissions</p>
+</li>
+<li>
+<p>Staff</p>
+</li>
+<li>
+<p>Departments</p>
+</li>
+<li>
+<p>Locations</p>
+</li>
+<li>
+<p>Forms</p>
+</li>
+<li>
+<p>Fields</p>
+</li>
+<li>
+<p>Workflows</p>
+</li>
+<li>
+<p>Services</p>
+</li>
+<li>
+<p>Billing configuration</p>
+</li>
+<li>
+<p>Appointment configuration</p>
+</li>
+<li>
+<p>Clinical configuration</p>
+</li>
+</ul>
+<p>The user should configure the organization rather than requiring code changes.</p>
+<hr>
+<h1>3. CORE IMPLEMENTATION PRINCIPLE</h1>
+<p>The application must be:</p>
+<pre><code class="language-text">CONFIGURATION DRIVEN
+        +
+ROLE DRIVEN
+        +
+PERMISSION DRIVEN
+        +
+ENTITY DRIVEN
+        +
+WORKFLOW DRIVEN
+        +
+FORM DRIVEN
+</code></pre>
+<p>Avoid hardcoding organization-specific assumptions wherever possible.</p>
+<p>For example:</p>
+<p>Do NOT build:</p>
+<pre><code class="language-text">DentalClinicPatientForm
+</code></pre>
+<p>Build:</p>
+<pre><code class="language-text">Dynamic Patient Form
+</code></pre>
+<p>Do NOT build:</p>
+<pre><code class="language-text">DentalAppointmentWorkflow
+</code></pre>
+<p>Build:</p>
+<pre><code class="language-text">Configurable Appointment Workflow
+</code></pre>
+<p>This allows the same V1 to support different healthcare organizations.</p>
+<hr>
+<h1>4. DEVELOPMENT PHASES</h1>
+<p>Development must happen in controlled phases.</p>
+<p>Recommended sequence:</p>
+<pre><code class="language-text">PHASE 0
+Foundation &amp; Repository
+        ↓
+PHASE 1
+Organization + Authentication
+        ↓
+PHASE 2
+Users + Roles + Permissions + Staff
+        ↓
+PHASE 3
+Dynamic Configuration Engine
+        ↓
+PHASE 4
+Patient Management
+        ↓
+PHASE 5
+Appointment Management
+        ↓
+PHASE 6
+Queue Management
+        ↓
+PHASE 7
+Clinical Management
+        ↓
+PHASE 8
+Billing + Payments + Receipts
+        ↓
+PHASE 9
+Documents + Attachments + History
+        ↓
+PHASE 10
+Dashboard + Reports + Search
+        ↓
+PHASE 11
+Offline / Online Synchronization
+        ↓
+PHASE 12
+Audit + Security Hardening
+        ↓
+PHASE 13
+Full Integration
+        ↓
+PHASE 14
+Production Readiness
+</code></pre>
+<p>A later phase must not be considered complete if its dependency phase is unstable.</p>
+<hr>
+<h1>5. PHASE 0 — FOUNDATION</h1>
+<h2>Objective</h2>
+<p>Create the base project structure.</p>
+<h3>Frontend</h3>
+<p>Implement:</p>
+<ul>
+<li>
+<p>React application</p>
+</li>
+<li>
+<p>Routing</p>
+</li>
+<li>
+<p>Layout system</p>
+</li>
+<li>
+<p>Sidebar</p>
+</li>
+<li>
+<p>Header</p>
+</li>
+<li>
+<p>Breadcrumbs</p>
+</li>
+<li>
+<p>Page container</p>
+</li>
+<li>
+<p>Modal system</p>
+</li>
+<li>
+<p>Drawer system</p>
+</li>
+<li>
+<p>Form system</p>
+</li>
+<li>
+<p>Table system</p>
+</li>
+<li>
+<p>Pagination</p>
+</li>
+<li>
+<p>Search</p>
+</li>
+<li>
+<p>Filters</p>
+</li>
+<li>
+<p>Toast/notification system</p>
+</li>
+<li>
+<p>Loading states</p>
+</li>
+<li>
+<p>Empty states</p>
+</li>
+<li>
+<p>Error states</p>
+</li>
+<li>
+<p>Confirmation dialogs</p>
+</li>
+</ul>
+<h3>Backend</h3>
+<p>Implement:</p>
+<ul>
+<li>
+<p>Node.js</p>
+</li>
+<li>
+<p>Express</p>
+</li>
+<li>
+<p>MongoDB</p>
+</li>
+<li>
+<p>Mongoose</p>
+</li>
+<li>
+<p>Environment configuration</p>
+</li>
+<li>
+<p>API structure</p>
+</li>
+<li>
+<p>Middleware architecture</p>
+</li>
+<li>
+<p>Error handling</p>
+</li>
+<li>
+<p>Logging</p>
+</li>
+<li>
+<p>Validation</p>
+</li>
+<li>
+<p>Authentication foundation</p>
+</li>
+</ul>
+<h3>Repository</h3>
+<p>Recommended structure:</p>
+<pre><code class="language-text">/client
+/server
+/shared
+/docs
+/tests
+/scripts
+</code></pre>
+<p>Do not mix frontend and backend business logic unnecessarily.</p>
+<hr>
+<h1>6. PHASE 1 — ORGANIZATION + AUTHENTICATION</h1>
+<h2>Objective</h2>
+<p>Create the organization foundation.</p>
+<p>The system must support:</p>
+<pre><code class="language-text">Organization
+    ↓
+Branch
+    ↓
+Department
+    ↓
+Location
+</code></pre>
+<p>An organization may have one or many branches.</p>
+<h3>Required functionality</h3>
+<ul>
+<li>
+<p>Organization creation</p>
+</li>
+<li>
+<p>Organization profile</p>
+</li>
+<li>
+<p>Organization settings</p>
+</li>
+<li>
+<p>Branch creation</p>
+</li>
+<li>
+<p>Branch editing</p>
+</li>
+<li>
+<p>Department creation</p>
+</li>
+<li>
+<p>Department editing</p>
+</li>
+<li>
+<p>Location configuration</p>
+</li>
+<li>
+<p>Login</p>
+</li>
+<li>
+<p>Logout</p>
+</li>
+<li>
+<p>Password management</p>
+</li>
+<li>
+<p>Session management</p>
+</li>
+<li>
+<p>User identity</p>
+</li>
+<li>
+<p>Organization context</p>
+</li>
+</ul>
+<h3>Acceptance Criteria</h3>
+<p>A new organization can be created.</p>
+<p>A user can log in.</p>
+<p>The system knows:</p>
+<pre><code class="language-text">Who is the user?
+Which organization?
+Which branch?
+Which role?
+Which permissions?
+</code></pre>
+<p>No organization data may leak between organizations.</p>
+<hr>
+<h1>7. PHASE 2 — USERS + ROLES + PERMISSIONS + STAFF</h1>
+<h2>Objective</h2>
+<p>Create the dynamic access-control foundation.</p>
+<h3>Entities</h3>
+<pre><code class="language-text">User
+Role
+Permission
+Staff
+Department
+Branch
+Designation
+</code></pre>
+<h3>Required functionality</h3>
+<p>Admin can:</p>
+<ul>
+<li>
+<p>Create user</p>
+</li>
+<li>
+<p>Edit user</p>
+</li>
+<li>
+<p>Activate/deactivate user</p>
+</li>
+<li>
+<p>Create role</p>
+</li>
+<li>
+<p>Edit role</p>
+</li>
+<li>
+<p>Assign permissions</p>
+</li>
+<li>
+<p>Create staff</p>
+</li>
+<li>
+<p>Assign staff to department</p>
+</li>
+<li>
+<p>Assign branch</p>
+</li>
+<li>
+<p>Assign designation</p>
+</li>
+<li>
+<p>Link staff to user</p>
+</li>
+<li>
+<p>Configure access</p>
+</li>
+</ul>
+<h3>Permission model</h3>
+<p>Permissions must be granular.</p>
+<p>Example:</p>
+<pre><code class="language-text">patients.view
+patients.create
+patients.edit
+patients.delete
+
+appointments.view
+appointments.create
+appointments.edit
+appointments.cancel
+
+billing.view
+billing.create
+billing.edit
+billing.refund
+
+clinical.view
+clinical.create
+clinical.edit
+
+reports.view
+reports.export
+
+settings.view
+settings.edit
+</code></pre>
+<p>The actual permission list must remain extensible.</p>
+<hr>
+<h1>8. PHASE 3 — DYNAMIC CONFIGURATION ENGINE</h1>
+<p>This is one of the most important phases.</p>
+<p>The organization must be able to configure the system without changing source code.</p>
+<h2>Dynamic Form Engine</h2>
+<p>Support:</p>
+<ul>
+<li>
+<p>Form creation</p>
+</li>
+<li>
+<p>Form editing</p>
+</li>
+<li>
+<p>Form activation/deactivation</p>
+</li>
+<li>
+<p>Section creation</p>
+</li>
+<li>
+<p>Field creation</p>
+</li>
+<li>
+<p>Field editing</p>
+</li>
+<li>
+<p>Field ordering</p>
+</li>
+<li>
+<p>Required/optional</p>
+</li>
+<li>
+<p>Field visibility</p>
+</li>
+<li>
+<p>Field type</p>
+</li>
+<li>
+<p>Validation</p>
+</li>
+<li>
+<p>Default value</p>
+</li>
+<li>
+<p>Options</p>
+</li>
+<li>
+<p>Conditional fields</p>
+</li>
+<li>
+<p>Role-based visibility where required</p>
+</li>
+</ul>
+<h3>Example</h3>
+<p>A hospital can create:</p>
+<pre><code class="language-text">Dental Examination Form
+</code></pre>
+<p>with:</p>
+<pre><code class="language-text">Tooth Number
+Pain Level
+Sensitivity
+Diagnosis
+Treatment Plan
+Notes
+</code></pre>
+<p>Another organization can create a different form.</p>
+<p>The core code does not change.</p>
+<hr>
+<h1>9. PHASE 4 — PATIENT MANAGEMENT</h1>
+<h2>Objective</h2>
+<p>Create the central patient record.</p>
+<h3>Patient functionality</h3>
+<ul>
+<li>
+<p>Register patient</p>
+</li>
+<li>
+<p>Edit patient</p>
+</li>
+<li>
+<p>View patient</p>
+</li>
+<li>
+<p>Search patient</p>
+</li>
+<li>
+<p>Filter patient</p>
+</li>
+<li>
+<p>Archive/deactivate where applicable</p>
+</li>
+<li>
+<p>Patient profile</p>
+</li>
+<li>
+<p>Patient identifiers</p>
+</li>
+<li>
+<p>Contact details</p>
+</li>
+<li>
+<p>Demographics</p>
+</li>
+<li>
+<p>Emergency contact</p>
+</li>
+<li>
+<p>Documents</p>
+</li>
+<li>
+<p>Medical information</p>
+</li>
+<li>
+<p>History</p>
+</li>
+<li>
+<p>Appointments</p>
+</li>
+<li>
+<p>Clinical records</p>
+</li>
+<li>
+<p>Billing</p>
+</li>
+<li>
+<p>Payments</p>
+</li>
+<li>
+<p>Receipts</p>
+</li>
+</ul>
+<p>The patient profile becomes the central navigation point.</p>
+<p>Example:</p>
+<pre><code class="language-text">Patient
+ ├── Overview
+ ├── Appointments
+ ├── Queue
+ ├── Clinical
+ ├── Billing
+ ├── Payments
+ ├── Receipts
+ ├── Documents
+ └── History
+</code></pre>
+<hr>
+<h1>10. PHASE 5 — APPOINTMENT MANAGEMENT</h1>
+<p>Appointment lifecycle:</p>
+<pre><code class="language-text">Create
+ ↓
+Scheduled
+ ↓
+Confirmed
+ ↓
+Checked-in
+ ↓
+Waiting
+ ↓
+In Consultation
+ ↓
+Completed
+</code></pre>
+<p>Alternative states must support:</p>
+<pre><code class="language-text">Cancelled
+No-show
+Rescheduled
+</code></pre>
+<h3>Appointment creation</h3>
+<p>Must support:</p>
+<ul>
+<li>
+<p>Patient</p>
+</li>
+<li>
+<p>Provider</p>
+</li>
+<li>
+<p>Department</p>
+</li>
+<li>
+<p>Branch</p>
+</li>
+<li>
+<p>Service</p>
+</li>
+<li>
+<p>Date</p>
+</li>
+<li>
+<p>Time</p>
+</li>
+<li>
+<p>Duration</p>
+</li>
+<li>
+<p>Appointment type</p>
+</li>
+<li>
+<p>Notes</p>
+</li>
+<li>
+<p>Status</p>
+</li>
+</ul>
+<h3>Important</h3>
+<p>Appointment availability must be calculated dynamically from configuration and existing appointments.</p>
+<p>Avoid hardcoding provider schedules.</p>
+<hr>
+<h1>11. PHASE 6 — QUEUE MANAGEMENT</h1>
+<p>Queue is connected to appointments and patient check-in.</p>
+<p>Example:</p>
+<pre><code class="language-text">Appointment
+      ↓
+Check-in
+      ↓
+Queue Entry
+      ↓
+Waiting
+      ↓
+Called
+      ↓
+In Consultation
+      ↓
+Completed
+</code></pre>
+<p>Queue must support:</p>
+<ul>
+<li>
+<p>Branch</p>
+</li>
+<li>
+<p>Department</p>
+</li>
+<li>
+<p>Provider</p>
+</li>
+<li>
+<p>Date</p>
+</li>
+<li>
+<p>Queue number/token</p>
+</li>
+<li>
+<p>Patient</p>
+</li>
+<li>
+<p>Priority</p>
+</li>
+<li>
+<p>Status</p>
+</li>
+<li>
+<p>Timestamp</p>
+</li>
+<li>
+<p>Calling</p>
+</li>
+<li>
+<p>Recalling</p>
+</li>
+<li>
+<p>Skip</p>
+</li>
+<li>
+<p>Complete</p>
+</li>
+<li>
+<p>Transfer where configured</p>
+</li>
+</ul>
+<p>Queue state changes must be recorded.</p>
+<hr>
+<h1>12. PHASE 7 — CLINICAL MANAGEMENT</h1>
+<p>Clinical functionality must connect directly with the patient.</p>
+<p>Core flow:</p>
+<pre><code class="language-text">Patient
+ ↓
+Appointment
+ ↓
+Check-in
+ ↓
+Queue
+ ↓
+Consultation
+ ↓
+Clinical Record
+ ↓
+Treatment / Plan
+ ↓
+Billing
+</code></pre>
+<p>Clinical system must support configurable clinical forms.</p>
+<p>Core clinical record may include:</p>
+<ul>
+<li>
+<p>Chief complaint</p>
+</li>
+<li>
+<p>History</p>
+</li>
+<li>
+<p>Examination</p>
+</li>
+<li>
+<p>Vitals</p>
+</li>
+<li>
+<p>Diagnosis</p>
+</li>
+<li>
+<p>Clinical notes</p>
+</li>
+<li>
+<p>Treatment</p>
+</li>
+<li>
+<p>Prescription where applicable</p>
+</li>
+<li>
+<p>Follow-up</p>
+</li>
+<li>
+<p>Attachments</p>
+</li>
+<li>
+<p>Provider notes</p>
+</li>
+</ul>
+<p>Do not hardcode specialty-specific fields.</p>
+<p>Use the dynamic form engine.</p>
+<hr>
+<h1>13. PHASE 8 — BILLING + PAYMENT + RECEIPTS</h1>
+<p>Billing must be independent enough to support future expansion.</p>
+<h3>Billing lifecycle</h3>
+<pre><code class="language-text">Bill Created
+ ↓
+Pending
+ ↓
+Partially Paid
+ ↓
+Paid
+</code></pre>
+<p>Possible states:</p>
+<pre><code class="language-text">Cancelled
+Refunded
+Adjusted
+</code></pre>
+<h3>Billing must support</h3>
+<ul>
+<li>
+<p>Invoice/Bill</p>
+</li>
+<li>
+<p>Bill items</p>
+</li>
+<li>
+<p>Service</p>
+</li>
+<li>
+<p>Quantity</p>
+</li>
+<li>
+<p>Price</p>
+</li>
+<li>
+<p>Discount</p>
+</li>
+<li>
+<p>Tax</p>
+</li>
+<li>
+<p>Total</p>
+</li>
+<li>
+<p>Patient</p>
+</li>
+<li>
+<p>Appointment/reference</p>
+</li>
+<li>
+<p>Payment status</p>
+</li>
+</ul>
+<h3>Payment</h3>
+<p>Support:</p>
+<pre><code class="language-text">Cash
+Card
+UPI
+Bank Transfer
+Online Payment
+Other configured method
+</code></pre>
+<p>Payment must be recorded independently.</p>
+<h3>Offline payment</h3>
+<p>If online payment is unavailable:</p>
+<pre><code class="language-text">Record payment
++
+Upload proof/screenshot
++
+Set verification status
+</code></pre>
+<p>Example:</p>
+<pre><code class="language-text">Pending Verification
+        ↓
+Accepted
+        OR
+Rejected
+</code></pre>
+<h3>Receipt</h3>
+<p>Receipt generation must be connected to the payment record.</p>
+<p>Do not manually create disconnected receipts.</p>
+<hr>
+<h1>14. PHASE 9 — DOCUMENTS + ATTACHMENTS + HISTORY</h1>
+<p>Documents may be attached to:</p>
+<ul>
+<li>
+<p>Patient</p>
+</li>
+<li>
+<p>Appointment</p>
+</li>
+<li>
+<p>Clinical record</p>
+</li>
+<li>
+<p>Billing</p>
+</li>
+<li>
+<p>Payment</p>
+</li>
+<li>
+<p>Organization</p>
+</li>
+<li>
+<p>Staff</p>
+</li>
+</ul>
+<p>Every important entity should have history where applicable.</p>
+<p>History should answer:</p>
+<pre><code class="language-text">What changed?
+Who changed it?
+When?
+What was the previous value?
+What is the new value?
+</code></pre>
+<hr>
+<h1>15. PHASE 10 — DASHBOARD + REPORTS + SEARCH</h1>
+<p>Dashboard must be role-aware.</p>
+<p>Example admin dashboard:</p>
+<pre><code class="language-text">Patients
+Appointments
+Today's Queue
+Today's Revenue
+Pending Payments
+Outstanding Bills
+Staff
+Branches
+Recent Activity
+</code></pre>
+<p>Doctor dashboard:</p>
+<pre><code class="language-text">Today's Appointments
+Waiting Patients
+Current Queue
+Recent Patients
+Pending Clinical Work
+Follow-ups
+</code></pre>
+<p>Reception dashboard:</p>
+<pre><code class="language-text">Appointments
+Check-ins
+Queue
+Patient Registration
+Payments
+Receipts
+</code></pre>
+<p>Users should only see widgets allowed by their permissions.</p>
+<hr>
+<h1>16. PHASE 11 — OFFLINE / ONLINE MODE</h1>
+<p>The system must support both operational modes where defined by architecture.</p>
+<p>Online:</p>
+<pre><code class="language-text">User
+ ↓
+Frontend
+ ↓
+API
+ ↓
+Database
+</code></pre>
+<p>Offline:</p>
+<pre><code class="language-text">User
+ ↓
+Frontend Local Store
+ ↓
+Local Operation Queue
+ ↓
+Connection Restored
+ ↓
+Sync Engine
+ ↓
+Server
+</code></pre>
+<p>The sync system must prevent duplicate operations.</p>
+<p>Every syncable operation requires:</p>
+<ul>
+<li>
+<p>operation ID</p>
+</li>
+<li>
+<p>entity ID</p>
+</li>
+<li>
+<p>timestamp</p>
+</li>
+<li>
+<p>device/client identifier</p>
+</li>
+<li>
+<p>operation type</p>
+</li>
+<li>
+<p>sync status</p>
+</li>
+<li>
+<p>retry information</p>
+</li>
+</ul>
+<p>Conflict handling must follow the Technical Architecture.</p>
+<hr>
+<h1>17. PHASE 12 — AUDIT + SECURITY HARDENING</h1>
+<p>Audit all sensitive operations.</p>
+<p>Examples:</p>
+<pre><code class="language-text">Login
+Logout
+Patient creation
+Patient modification
+Patient deletion/archive
+Clinical modification
+Billing modification
+Payment creation
+Payment update
+Refund
+Role modification
+Permission modification
+Staff modification
+Configuration modification
+</code></pre>
+<p>Audit record:</p>
+<pre><code class="language-text">Actor
+Organization
+Branch
+Action
+Entity
+Entity ID
+Timestamp
+Before
+After
+IP/device information where configured
+</code></pre>
+<p>Security checks:</p>
+<ul>
+<li>
+<p>Authentication</p>
+</li>
+<li>
+<p>Authorization</p>
+</li>
+<li>
+<p>Tenant isolation</p>
+</li>
+<li>
+<p>Input validation</p>
+</li>
+<li>
+<p>API validation</p>
+</li>
+<li>
+<p>Rate limiting where appropriate</p>
+</li>
+<li>
+<p>Secure password handling</p>
+</li>
+<li>
+<p>Secure token handling</p>
+</li>
+<li>
+<p>File validation</p>
+</li>
+<li>
+<p>Access control</p>
+</li>
+<li>
+<p>Audit logging</p>
+</li>
+</ul>
+<hr>
+<h1>18. PHASE 13 — FULL SYSTEM INTEGRATION</h1>
+<p>This phase connects all modules.</p>
+<p>The following chain must work:</p>
+<pre><code class="language-text">Organization
+ ↓
+User
+ ↓
+Role
+ ↓
+Permission
+ ↓
+Staff
+ ↓
+Patient
+ ↓
+Appointment
+ ↓
+Check-in
+ ↓
+Queue
+ ↓
+Clinical Consultation
+ ↓
+Clinical Record
+ ↓
+Billing
+ ↓
+Payment
+ ↓
+Receipt
+ ↓
+History
+ ↓
+Audit
+</code></pre>
+<p>No module is considered complete merely because its individual page works.</p>
+<p>The connected workflow must work.</p>
+<hr>
+<h1>19. PHASE 14 — PRODUCTION READINESS</h1>
+<p>Final validation:</p>
+<ul>
+<li>
+<p>Build</p>
+</li>
+<li>
+<p>Environment configuration</p>
+</li>
+<li>
+<p>Database configuration</p>
+</li>
+<li>
+<p>Error monitoring</p>
+</li>
+<li>
+<p>Logging</p>
+</li>
+<li>
+<p>Security</p>
+</li>
+<li>
+<p>Backup strategy</p>
+</li>
+<li>
+<p>Migration strategy</p>
+</li>
+<li>
+<p>Seed strategy</p>
+</li>
+<li>
+<p>API documentation</p>
+</li>
+<li>
+<p>Deployment configuration</p>
+</li>
+<li>
+<p>Production build</p>
+</li>
+<li>
+<p>Smoke tests</p>
+</li>
+<li>
+<p>E2E tests</p>
+</li>
+</ul>
+<hr>
+<h1>20. DEVELOPMENT DEPENDENCIES</h1>
+<p>Dependency graph:</p>
+<pre><code class="language-text">Foundation
+   ↓
+Authentication
+   ↓
+Organization
+   ↓
+RBAC
+   ↓
+Dynamic Configuration
+   ↓
+Patient
+   ↓
+Appointment
+   ↓
+Queue
+   ↓
+Clinical
+   ↓
+Billing
+   ↓
+Payment
+   ↓
+Receipt
+   ↓
+Reports
+   ↓
+Audit / Sync / Hardening
+</code></pre>
+<p>Some cross-cutting services should be built early:</p>
+<pre><code class="language-text">Validation
+Error handling
+Notifications
+File storage
+Audit
+Permissions
+Dynamic forms
+Search
+</code></pre>
+<hr>
+<h1>21. ACCEPTANCE CRITERIA</h1>
+<h2>Organization</h2>
+<p>PASS only if:</p>
+<ul>
+<li>
+<p>Organization can be created.</p>
+</li>
+<li>
+<p>Branch can be created.</p>
+</li>
+<li>
+<p>Department can be created.</p>
+</li>
+<li>
+<p>Users can be assigned.</p>
+</li>
+<li>
+<p>Data remains tenant isolated.</p>
+</li>
+</ul>
+<hr>
+<h2>Authentication</h2>
+<p>PASS only if:</p>
+<ul>
+<li>
+<p>Valid user can log in.</p>
+</li>
+<li>
+<p>Invalid login is rejected.</p>
+</li>
+<li>
+<p>Logout works.</p>
+</li>
+<li>
+<p>Unauthorized APIs are rejected.</p>
+</li>
+<li>
+<p>Session/token handling works.</p>
+</li>
+</ul>
+<hr>
+<h2>RBAC</h2>
+<p>PASS only if:</p>
+<pre><code class="language-text">Admin → allowed
+Receptionist → limited
+Doctor → clinical access
+Billing staff → billing access
+</code></pre>
+<p>Permissions must actually be enforced at API level.</p>
+<p>Frontend hiding alone is NOT sufficient.</p>
+<hr>
+<h2>Dynamic Forms</h2>
+<p>PASS only if an administrator can:</p>
+<pre><code class="language-text">Create Form
+ ↓
+Create Section
+ ↓
+Create Field
+ ↓
+Configure Field
+ ↓
+Publish
+ ↓
+Open Form
+ ↓
+Enter Data
+ ↓
+Save
+ ↓
+View
+ ↓
+Edit
+</code></pre>
+<p>without modifying source code.</p>
+<hr>
+<h1>22. PATIENT ACCEPTANCE TEST</h1>
+<p>Create:</p>
+<pre><code class="language-text">Patient A
+</code></pre>
+<p>Then:</p>
+<pre><code class="language-text">Register
+ ↓
+Edit
+ ↓
+View profile
+ ↓
+Create appointment
+ ↓
+Check-in
+ ↓
+Queue
+ ↓
+Consultation
+ ↓
+Clinical record
+ ↓
+Bill
+ ↓
+Payment
+ ↓
+Receipt
+</code></pre>
+<p>The patient profile must show the complete connected history.</p>
+<hr>
+<h1>23. APPOINTMENT E2E TEST</h1>
+<pre><code class="language-text">Create patient
+ ↓
+Create appointment
+ ↓
+Confirm appointment
+ ↓
+Check-in
+ ↓
+Queue created
+ ↓
+Patient called
+ ↓
+Doctor starts consultation
+ ↓
+Clinical record created
+ ↓
+Appointment completed
+</code></pre>
+<p>Every status transition must be persisted.</p>
+<hr>
+<h1>24. BILLING E2E TEST</h1>
+<pre><code class="language-text">Service configured
+ ↓
+Service used
+ ↓
+Bill generated
+ ↓
+Payment recorded
+ ↓
+Receipt generated
+ ↓
+Bill status updated
+ ↓
+Patient billing history updated
+ ↓
+Dashboard revenue updated
+</code></pre>
+<hr>
+<h1>25. OFFLINE PAYMENT E2E TEST</h1>
+<pre><code class="language-text">Create bill
+ ↓
+Payment attempted
+ ↓
+Offline/manual payment
+ ↓
+Proof uploaded
+ ↓
+Payment = Pending Verification
+ ↓
+Authorized user reviews
+ ↓
+Accept
+ ↓
+Payment = Accepted
+ ↓
+Bill updated
+ ↓
+Receipt available
+ ↓
+History updated
+</code></pre>
+<p>Rejected flow must also work:</p>
+<pre><code class="language-text">Pending
+ ↓
+Reject
+ ↓
+Reason
+ ↓
+Payment remains unpaid/pending according to configured business rule
+</code></pre>
+<hr>
+<h1>26. EDIT / DELETE / UPDATE TESTING</h1>
+<p>Every relevant CRUD module must test:</p>
+<pre><code class="language-text">Create
+Read/View
+List
+Search
+Filter
+Edit
+Update
+Archive/Delete
+Restore where supported
+History
+Permission
+</code></pre>
+<p>Delete must not blindly remove records that are legally or operationally required for history.</p>
+<p>Use archive/soft-delete where required by architecture.</p>
+<hr>
+<h1>27. VIEW DETAIL STANDARD</h1>
+<p>Every major entity should have:</p>
+<pre><code class="language-text">List View
+   ↓
+View Detail
+   ↓
+Edit
+   ↓
+History
+</code></pre>
+<p>Example:</p>
+<pre><code class="language-text">Patient List
+ ↓
+Patient Detail
+ ├── Overview
+ ├── Appointments
+ ├── Clinical
+ ├── Billing
+ ├── Payments
+ ├── Documents
+ └── History
+</code></pre>
+<p>Buttons must respect permissions.</p>
+<hr>
+<h1>28. BACK BUTTON / NAVIGATION ACCEPTANCE</h1>
+<p>Navigation must remain predictable.</p>
+<p>Examples:</p>
+<pre><code class="language-text">Patient List
+ ↓
+Patient Detail
+ ↓
+Appointment
+ ↓
+Clinical Record
+</code></pre>
+<p>Back must return to the logical previous screen.</p>
+<p>Do not unexpectedly reset filters, pagination or context unless intended.</p>
+<p>Breadcrumbs should provide another navigation path.</p>
+<hr>
+<h1>29. SEARCH TESTING</h1>
+<p>Search must work across relevant entities.</p>
+<p>Examples:</p>
+<pre><code class="language-text">Patient name
+Patient ID
+Phone
+Appointment
+Invoice
+Receipt
+Staff
+</code></pre>
+<p>Search results must respect:</p>
+<ul>
+<li>
+<p>Organization</p>
+</li>
+<li>
+<p>Branch</p>
+</li>
+<li>
+<p>Permissions</p>
+</li>
+<li>
+<p>Status</p>
+</li>
+<li>
+<p>Archived state</p>
+</li>
+</ul>
+<hr>
+<h1>30. FORM VALIDATION TESTING</h1>
+<p>Every form must test:</p>
+<h3>Required fields</h3>
+<p>Empty → reject.</p>
+<h3>Invalid format</h3>
+<p>Invalid → reject.</p>
+<h3>Duplicate data</h3>
+<p>Duplicate where prohibited → reject.</p>
+<h3>Permission</h3>
+<p>Unauthorized user → reject.</p>
+<h3>Edit</h3>
+<p>Existing valid data → update successfully.</p>
+<h3>Cancel</h3>
+<p>Cancel form → no unintended data change.</p>
+<h3>Error</h3>
+<p>Backend failure → user receives usable error message.</p>
+<hr>
+<h1>31. ROLE-BASED E2E TESTS</h1>
+<p>At minimum create seed roles:</p>
+<pre><code class="language-text">Super Admin
+Organization Admin
+Doctor
+Receptionist
+Nurse/Assistant
+Billing Staff
+Manager
+</code></pre>
+<p>The exact role set remains configurable.</p>
+<p>Test each role against:</p>
+<pre><code class="language-text">Dashboard
+Patients
+Appointments
+Queue
+Clinical
+Billing
+Payments
+Reports
+Settings
+Users
+Roles
+</code></pre>
+<p>Expected result:</p>
+<pre><code class="language-text">Allowed → works
+Not allowed → blocked
+</code></pre>
+<hr>
+<h1>32. DYNAMIC ORGANIZATION TEST</h1>
+<p>Create three test organizations.</p>
+<h3>Organization A</h3>
+<p>Single doctor clinic.</p>
+<p>Configuration:</p>
+<pre><code class="language-text">1 branch
+1 doctor
+1 receptionist
+</code></pre>
+<h3>Organization B</h3>
+<p>Dental clinic.</p>
+<p>Configuration:</p>
+<pre><code class="language-text">1 branch
+5 doctors
+multiple services
+custom dental clinical form
+</code></pre>
+<h3>Organization C</h3>
+<p>Hospital.</p>
+<p>Configuration:</p>
+<pre><code class="language-text">multiple departments
+multiple doctors
+multiple staff
+multiple services
+multiple roles
+</code></pre>
+<p>The same codebase must support all three.</p>
+<p>No organization-specific source-code modification should be required.</p>
+<hr>
+<h1>33. DYNAMIC FORM TEST</h1>
+<p>Create a new form after application deployment.</p>
+<p>Example:</p>
+<pre><code class="language-text">Form: Dental Examination
+
+Fields:
+- Tooth Number
+- Pain
+- Sensitivity
+- Diagnosis
+- Treatment Notes
+</code></pre>
+<p>Publish it.</p>
+<p>Then create another form:</p>
+<pre><code class="language-text">General Consultation
+
+Fields:
+- Chief Complaint
+- Examination
+- Diagnosis
+- Follow-up
+</code></pre>
+<p>Both forms must work without code deployment.</p>
+<hr>
+<h1>34. MULTI-BRANCH TEST</h1>
+<p>Create:</p>
+<pre><code class="language-text">Branch A
+Branch B
+</code></pre>
+<p>Create patients, appointments and billing in both.</p>
+<p>Verify:</p>
+<pre><code class="language-text">Branch A data
+≠
+Branch B data
+</code></pre>
+<p>according to access permissions.</p>
+<p>Organization-level users may see both where authorized.</p>
+<p>Branch-level users must only see permitted branch data.</p>
+<hr>
+<h1>35. DATA INTEGRITY TESTS</h1>
+<p>Test:</p>
+<pre><code class="language-text">Appointment references valid patient
+Queue references valid appointment/patient
+Clinical record references correct patient/encounter
+Bill references correct patient
+Payment references correct bill
+Receipt references correct payment
+Audit references correct entity
+</code></pre>
+<p>Deleting/archiving one entity must not silently corrupt historical relationships.</p>
+<hr>
+<h1>36. API ACCEPTANCE</h1>
+<p>Every API must have:</p>
+<pre><code class="language-text">Authentication
+Authorization
+Validation
+Business rule validation
+Tenant/organization validation
+Error handling
+Consistent response format
+</code></pre>
+<p>Example response structure:</p>
+<pre><code class="language-text">success
+data
+message
+error
+metadata
+</code></pre>
+<p>Do not expose internal database errors directly to users.</p>
+<hr>
+<h1>37. FRONTEND ACCEPTANCE</h1>
+<p>Every major screen must support:</p>
+<pre><code class="language-text">Loading
+Success
+Empty
+Error
+Unauthorized
+No permission
+Not found
+Validation error
+Network failure
+</code></pre>
+<p>No screen should remain blank when an API fails.</p>
+<hr>
+<h1>38. PERFORMANCE ACCEPTANCE</h1>
+<p>The system should remain usable with realistic data volumes.</p>
+<p>Test with:</p>
+<pre><code class="language-text">1,000+ patients
+10,000+ appointments
+10,000+ clinical records
+10,000+ bills
+multiple staff/users
+multiple branches
+</code></pre>
+<p>Pagination must be server-side for large datasets.</p>
+<p>Avoid loading entire collections into the browser.</p>
+<hr>
+<h1>39. SEED DATA</h1>
+<p>Development seed data must create a realistic organization.</p>
+<p>Seed:</p>
+<h3>Organization</h3>
+<pre><code class="language-text">Demo Healthcare Organization
+</code></pre>
+<h3>Branches</h3>
+<pre><code class="language-text">Main Branch
+Secondary Branch
+</code></pre>
+<h3>Departments</h3>
+<pre><code class="language-text">General
+Dental
+Diagnostics
+Administration
+Billing
+</code></pre>
+<h3>Users</h3>
+<pre><code class="language-text">Admin
+Doctor
+Receptionist
+Nurse
+Billing Staff
+Manager
+</code></pre>
+<h3>Patients</h3>
+<p>At least several realistic sample patients.</p>
+<h3>Appointments</h3>
+<p>Create:</p>
+<pre><code class="language-text">Scheduled
+Confirmed
+Checked-in
+Waiting
+Completed
+Cancelled
+No-show
+</code></pre>
+<h3>Bills</h3>
+<p>Create:</p>
+<pre><code class="language-text">Pending
+Partially Paid
+Paid
+</code></pre>
+<h3>Payments</h3>
+<p>Create:</p>
+<pre><code class="language-text">Cash
+Online
+Manual proof
+Pending verification
+Accepted
+Rejected
+</code></pre>
+<p>Seed data must be disposable and must never be treated as production data.</p>
+<hr>
+<h1>40. TEST ENVIRONMENTS</h1>
+<p>Maintain separation:</p>
+<pre><code class="language-text">Development
+Testing
+Staging
+Production
+</code></pre>
+<p>Do not connect development/test environments to production database.</p>
+<hr>
+<h1>41. MIGRATION STRATEGY</h1>
+<p>Because V2 and V3 will later connect to V1:</p>
+<p>Database changes must be migration-safe.</p>
+<p>Avoid destructive schema changes.</p>
+<p>Prefer:</p>
+<pre><code class="language-text">Add field
+ ↓
+Support old + new
+ ↓
+Migrate data
+ ↓
+Switch usage
+ ↓
+Remove old field only in controlled migration
+</code></pre>
+<p>Do not make V1 dependent on V2 database collections.</p>
+<hr>
+<h1>42. V2/V3 COMPATIBILITY CHECK</h1>
+<p>Before V1 release, verify:</p>
+<h3>Entity IDs</h3>
+<p>Every major entity has stable unique IDs.</p>
+<h3>References</h3>
+<p>References are explicit.</p>
+<h3>Organization scope</h3>
+<p>All organization-owned entities support organization context.</p>
+<h3>Branch scope</h3>
+<p>Where applicable, entities support branch context.</p>
+<h3>Extensibility</h3>
+<p>Enums/statuses that may expand must not be implemented in a way that blocks future values.</p>
+<h3>Dynamic configuration</h3>
+<p>Forms and configuration are data-driven.</p>
+<h3>API versioning</h3>
+<p>Future API changes must be able to coexist.</p>
+<p>Recommended:</p>
+<pre><code class="language-text">/api/v1/...
+</code></pre>
+<p>V2 can later introduce:</p>
+<pre><code class="language-text">/api/v2/...
+</code></pre>
+<p>without breaking V1 consumers.</p>
+<hr>
+<h1>43. E2E MASTER FLOW</h1>
+<p>The most important complete V1 test is:</p>
+<pre><code class="language-text">Organization Created
+        ↓
+Admin Created
+        ↓
+Role Configured
+        ↓
+Staff Created
+        ↓
+Doctor Assigned
+        ↓
+Service Configured
+        ↓
+Dynamic Clinical Form Configured
+        ↓
+Patient Registered
+        ↓
+Appointment Created
+        ↓
+Appointment Confirmed
+        ↓
+Patient Checked-in
+        ↓
+Queue Entry Created
+        ↓
+Patient Called
+        ↓
+Consultation Started
+        ↓
+Clinical Form Completed
+        ↓
+Clinical Record Saved
+        ↓
+Service/Bill Generated
+        ↓
+Payment Recorded
+        ↓
+Receipt Generated
+        ↓
+Appointment Completed
+        ↓
+Patient History Updated
+        ↓
+Billing History Updated
+        ↓
+Audit History Updated
+        ↓
+Dashboard Updated
+</code></pre>
+<p>If this complete flow works, the core V1 architecture is functioning.</p>
+<hr>
+<h1>44. FAILURE E2E FLOW</h1>
+<p>The system must also handle failures.</p>
+<p>Example:</p>
+<pre><code class="language-text">Appointment
+ ↓
+Check-in
+ ↓
+Queue
+ ↓
+Network Failure
+ ↓
+Offline operation
+ ↓
+Connection restored
+ ↓
+Sync
+ ↓
+Server confirmation
+ ↓
+Continue workflow
+</code></pre>
+<p>Another:</p>
+<pre><code class="language-text">Payment
+ ↓
+Upload proof
+ ↓
+Server failure
+ ↓
+Retry
+ ↓
+No duplicate payment
+</code></pre>
+<p>Another:</p>
+<pre><code class="language-text">Two users edit same record
+ ↓
+Conflict detection
+ ↓
+Configured conflict handling
+</code></pre>
+<hr>
+<h1>45. DEFINITION OF DONE — MODULE LEVEL</h1>
+<p>A module is NOT DONE when its UI exists.</p>
+<p>A module is DONE only when:</p>
+<pre><code class="language-text">UI
++
+API
++
+Database
++
+Validation
++
+Permissions
++
+Business Logic
++
+Error Handling
++
+History
++
+Search/Filter where applicable
++
+View
++
+Edit
++
+Delete/Archive where applicable
++
+Integration
++
+Tests
+</code></pre>
+<p>are working.</p>
+<hr>
+<h1>46. DEFINITION OF DONE — FORM LEVEL</h1>
+<p>A form is DONE only when:</p>
+<pre><code class="language-text">Create
+Read
+Edit
+Validation
+Permission
+Save
+Cancel
+Error handling
+Dynamic fields
+Conditional behavior
+History
+</code></pre>
+<p>work correctly.</p>
+<hr>
+<h1>47. DEFINITION OF DONE — FEATURE LEVEL</h1>
+<p>A feature is DONE only when:</p>
+<ol>
+<li>
+<p>Frontend implemented.</p>
+</li>
+<li>
+<p>Backend implemented.</p>
+</li>
+<li>
+<p>Database integrated.</p>
+</li>
+<li>
+<p>API connected.</p>
+</li>
+<li>
+<p>Permissions enforced.</p>
+</li>
+<li>
+<p>Validation implemented.</p>
+</li>
+<li>
+<p>Loading/error states implemented.</p>
+</li>
+<li>
+<p>View implemented.</p>
+</li>
+<li>
+<p>Edit implemented where applicable.</p>
+</li>
+<li>
+<p>Delete/archive implemented where applicable.</p>
+</li>
+<li>
+<p>History implemented where applicable.</p>
+</li>
+<li>
+<p>E2E test passes.</p>
+</li>
+<li>
+<p>No console/API errors.</p>
+</li>
+<li>
+<p>No broken navigation.</p>
+</li>
+<li>
+<p>No tenant isolation issue.</p>
+</li>
+</ol>
+<hr>
+<h1>48. DEFINITION OF DONE — V1</h1>
+<p>V1 is DONE only when all of the following are true:</p>
+<h2>Core</h2>
+<ul>
+<li>
+<p>Authentication works.</p>
+</li>
+<li>
+<p>Organization management works.</p>
+</li>
+<li>
+<p>Branches work.</p>
+</li>
+<li>
+<p>Departments work.</p>
+</li>
+<li>
+<p>Users work.</p>
+</li>
+<li>
+<p>Roles work.</p>
+</li>
+<li>
+<p>Permissions work.</p>
+</li>
+<li>
+<p>Staff works.</p>
+</li>
+</ul>
+<h2>Dynamic</h2>
+<ul>
+<li>
+<p>Dynamic forms work.</p>
+</li>
+<li>
+<p>Dynamic fields work.</p>
+</li>
+<li>
+<p>Configuration works.</p>
+</li>
+<li>
+<p>Organization can configure itself without source-code changes.</p>
+</li>
+</ul>
+<h2>Healthcare</h2>
+<ul>
+<li>
+<p>Patients work.</p>
+</li>
+<li>
+<p>Appointments work.</p>
+</li>
+<li>
+<p>Check-in works.</p>
+</li>
+<li>
+<p>Queue works.</p>
+</li>
+<li>
+<p>Clinical records work.</p>
+</li>
+</ul>
+<h2>Financial</h2>
+<ul>
+<li>
+<p>Billing works.</p>
+</li>
+<li>
+<p>Payments work.</p>
+</li>
+<li>
+<p>Manual payment proof works.</p>
+</li>
+<li>
+<p>Online payment integration point works according to configured provider.</p>
+</li>
+<li>
+<p>Receipts work.</p>
+</li>
+</ul>
+<h2>Operational</h2>
+<ul>
+<li>
+<p>Dashboard works.</p>
+</li>
+<li>
+<p>Search works.</p>
+</li>
+<li>
+<p>Filters work.</p>
+</li>
+<li>
+<p>History works.</p>
+</li>
+<li>
+<p>Audit works.</p>
+</li>
+<li>
+<p>Documents work where configured.</p>
+</li>
+</ul>
+<h2>Reliability</h2>
+<ul>
+<li>
+<p>Error handling works.</p>
+</li>
+<li>
+<p>Offline/sync behavior works according to architecture.</p>
+</li>
+<li>
+<p>Data integrity passes.</p>
+</li>
+<li>
+<p>Security tests pass.</p>
+</li>
+<li>
+<p>Permission tests pass.</p>
+</li>
+<li>
+<p>E2E tests pass.</p>
+</li>
+</ul>
+<h2>Future compatibility</h2>
+<ul>
+<li>
+<p>V1 APIs are versioned.</p>
+</li>
+<li>
+<p>Stable entity IDs exist.</p>
+</li>
+<li>
+<p>Organization/branch context is preserved.</p>
+</li>
+<li>
+<p>Dynamic configuration is extensible.</p>
+</li>
+<li>
+<p>V2/V3 can introduce new modules without rewriting V1 core entities.</p>
+</li>
+</ul>
+<hr>
+<h1>49. FINAL RELEASE GATE</h1>
+<p>Before declaring V1 production-ready:</p>
+<pre><code class="language-text">[ ] Build passes
+[ ] Backend starts cleanly
+[ ] Frontend starts cleanly
+[ ] Database connects
+[ ] Migrations work
+[ ] Seed works
+[ ] Authentication tested
+[ ] RBAC tested
+[ ] Organization isolation tested
+[ ] Patient E2E passes
+[ ] Appointment E2E passes
+[ ] Queue E2E passes
+[ ] Clinical E2E passes
+[ ] Billing E2E passes
+[ ] Payment E2E passes
+[ ] Receipt E2E passes
+[ ] Dynamic form E2E passes
+[ ] Offline/sync E2E passes
+[ ] Audit tested
+[ ] Search tested
+[ ] Edit tested
+[ ] Archive/delete tested
+[ ] Error states tested
+[ ] Permission boundaries tested
+[ ] Multi-branch tested
+[ ] Performance baseline tested
+[ ] Security baseline tested
+[ ] Production configuration verified
+[ ] No critical bugs
+[ ] No broken navigation
+[ ] No unresolved API errors
+[ ] V2/V3 compatibility review passed
+</code></pre>
+<hr>
+<h1>50. ANTIGRAVITY IMPLEMENTATION RULE</h1>
+<p>Antigravity must treat these three documents as one controlled specification:</p>
+<pre><code class="language-text">DOCUMENT 1
+V1_MASTER_PRODUCT_SPEC
+        ↓
+WHAT the user can do
+
+DOCUMENT 2
+V1_TECHNICAL_ARCHITECTURE
+        ↓
+HOW the system is technically structured
+
+DOCUMENT 3
+V1_IMPLEMENTATION_PLAN
+        ↓
+IN WHICH ORDER and under WHICH acceptance criteria
+the system is built and verified
+</code></pre>
+<p>The implementation must not:</p>
+<ul>
+<li>
+<p>Remove required functionality.</p>
+</li>
+<li>
+<p>Invent a different architecture.</p>
+</li>
+<li>
+<p>Hardcode organization-specific behavior.</p>
+</li>
+<li>
+<p>Hardcode specialty-specific forms.</p>
+</li>
+<li>
+<p>Duplicate entities unnecessarily.</p>
+</li>
+<li>
+<p>Create isolated modules that cannot communicate.</p>
+</li>
+<li>
+<p>Build frontend-only permissions.</p>
+</li>
+<li>
+<p>Build disconnected mock workflows.</p>
+</li>
+<li>
+<p>Replace real database/API connectivity with fake data for completed features.</p>
+</li>
+<li>
+<p>Break existing V1 contracts while implementing later V1 phases.</p>
+</li>
+</ul>
+<hr>
+<h1>51. GOLDEN RULE</h1>
+<p>The finished V1 should behave like:</p>
+<pre><code class="language-text">ONE SYSTEM
+        |
+        +-- Organization
+        |
+        +-- Users / Roles / Permissions
+        |
+        +-- Staff / Departments / Branches
+        |
+        +-- Dynamic Configuration
+        |
+        +-- Patients
+        |
+        +-- Appointments
+        |
+        +-- Queue
+        |
+        +-- Clinical
+        |
+        +-- Billing
+        |
+        +-- Payments
+        |
+        +-- Receipts
+        |
+        +-- Documents
+        |
+        +-- History / Audit
+        |
+        +-- Dashboard / Reports
+        |
+        +-- Offline / Sync
+</code></pre>
+<p>Not:</p>
+<pre><code class="language-text">many independent mini-apps
+</code></pre>
+<p>Every major entity must have a clear relationship with the rest of the system.</p>
+<p>The user should be able to start at:</p>
+<pre><code class="language-text">Dashboard
+</code></pre>
+<p>and reach:</p>
+<pre><code class="language-text">Patient
+ → Appointment
+ → Queue
+ → Clinical
+ → Billing
+ → Payment
+ → Receipt
+ → History
+</code></pre>
+<p>without breaking context.</p>
+<p>Likewise, starting from a patient should allow navigation into all relevant connected records.</p>
+<hr>
+<h1>52. FINAL V1 QUALITY STANDARD</h1>
+<p>The final V1 must feel like a real operational healthcare-management product, not a collection of screens.</p>
+<p>The test for completion is:</p>
+<blockquote>
+<p>Can a real clinic or hospital configure the organization, create its staff, register a patient, schedule an appointment, check the patient in, manage the queue, conduct the clinical workflow, generate billing, receive payment, issue a receipt, maintain history, and review the complete record — with permissions, auditability, dynamic configuration and reliable data connectivity?</p>
+</blockquote>
+<p>If the answer is <strong>YES</strong>, and all Definition-of-Done gates pass, V1 is ready.</p>
+<h1>END OF DOCUMENT 3</h1></body></html>
