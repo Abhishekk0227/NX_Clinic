@@ -1,4 +1,5 @@
-const API_BASE = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/v1` : '/api/v1';
+const rawApiUrl = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
+const API_BASE = rawApiUrl ? `${rawApiUrl}/api/v1` : '/api/v1';
 
 const getHeaders = () => {
   const token = localStorage.getItem('hms_token');
