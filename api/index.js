@@ -2,26 +2,36 @@ const connectDB = require('../server/src/config/db');
 const routes = require('../server/src/routes');
 const errorHandler = require('../server/src/middleware/errorHandler');
 const express = require('express');
-const cors = require('cors');
 const helmet = require('helmet');
 
 const app = express();
 
-// Initialize DB connection
-connectDB();
-
-// Robust CORS Middleware for cross-origin frontend apps (Vercel, Local, Custom domains)
+// Global CORS Middleware - Always first
 app.use((req, res, next) => {
   const origin = req.headers.origin || '*';
-  res.header('Access-Control-Allow-Origin', origin);
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-branch-id');
-  res.header('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization, x-branch-id');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
   next();
+});
+
+// Middleware to ensure DB connection before handling API route
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error('[Vercel Serverless DB Error]', err);
+    res.status(500).json({
+      success: false,
+      error: { code: 'DB_CONNECTION_ERROR', message: 'Failed to connect to database' }
+    });
+  }
 });
 
 app.use(helmet({ crossOriginResourcePolicy: false }));
