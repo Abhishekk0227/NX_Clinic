@@ -253,6 +253,51 @@ const Layout = () => {
 
           <Outlet />
         </main>
+
+        {/* ========================================================================= */}
+        {/* NATIVE MOBILE BOTTOM APP BAR (True App-like One-Thumb Experience)         */}
+        {/* ========================================================================= */}
+        <nav className="mobile-bottom-app-bar no-print">
+          <NavLink to="/" end className={({ isActive }) => `mobile-tab-item ${isActive ? 'active' : ''}`}>
+            <LayoutDashboard size={20} />
+            <span>Home</span>
+          </NavLink>
+
+          {hasPermission('patients.view') && (
+            <NavLink to="/patients" className={({ isActive }) => `mobile-tab-item ${isActive ? 'active' : ''}`}>
+              <Users size={20} />
+              <span>Patients</span>
+            </NavLink>
+          )}
+
+          {hasPermission('appointments.view') && (
+            <NavLink to="/appointments" className={({ isActive }) => `mobile-tab-item ${isActive ? 'active' : ''}`}>
+              <Calendar size={20} />
+              <span>Apts</span>
+            </NavLink>
+          )}
+
+          {hasPermission('queue.view') && (
+            <NavLink to="/queue" className={({ isActive }) => `mobile-tab-item ${isActive ? 'active' : ''}`}>
+              <Clock size={20} />
+              <span>Queue</span>
+            </NavLink>
+          )}
+
+          {hasPermission('clinical.view') && (
+            <NavLink to="/clinical/encounters" className={({ isActive }) => `mobile-tab-item ${isActive ? 'active' : ''}`}>
+              <Stethoscope size={20} />
+              <span>OPD</span>
+            </NavLink>
+          )}
+
+          {hasPermission('billing.view') && (
+            <NavLink to="/billing" className={({ isActive }) => `mobile-tab-item ${isActive ? 'active' : ''}`}>
+              <CreditCard size={20} />
+              <span>Billing</span>
+            </NavLink>
+          )}
+        </nav>
       </div>
     </div>
   );
