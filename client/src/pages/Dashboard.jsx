@@ -154,7 +154,7 @@ const Dashboard = () => {
       </div>
 
       {/* Main 2-Column Operational Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '20px' }}>
+      <div className="dashboard-main-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 360px), 1fr))', gap: '20px' }}>
         {/* Today's Live Queue Card */}
         <div className="card">
           <div className="card-header">
