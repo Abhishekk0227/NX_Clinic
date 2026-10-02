@@ -285,7 +285,7 @@ const Layout = () => {
           )}
 
           {hasPermission('clinical.view') && (
-            <NavLink to="/clinical/encounters" className={({ isActive }) => `mobile-tab-item ${isActive ? 'active' : ''}`}>
+            <NavLink to="/clinical" className={({ isActive }) => `mobile-tab-item ${isActive ? 'active' : ''}`}>
               <Stethoscope size={20} />
               <span>OPD</span>
             </NavLink>

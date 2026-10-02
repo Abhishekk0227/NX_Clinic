@@ -84,70 +84,46 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* KPI Cards Grid */}
+      {/* Modern Clean Mobile App KPI Summary */}
       <div className="kpi-grid">
         <div className="kpi-card" onClick={() => navigate('/patients')} style={{ cursor: 'pointer' }}>
-          <div className="kpi-icon-wrap" style={{ background: '#e0f2fe', color: '#0284c7' }}>
-            <Users size={24} />
+          <div className="kpi-icon-wrap" style={{ background: '#f1f5f9', color: '#0f172a' }}>
+            <Users size={22} />
           </div>
           <div>
             <div className="kpi-val">{kpis.totalPatients || 0}</div>
-            <div className="kpi-label">Registered Patients</div>
+            <div className="kpi-label">Patients</div>
           </div>
         </div>
 
         <div className="kpi-card" onClick={() => navigate('/appointments')} style={{ cursor: 'pointer' }}>
-          <div className="kpi-icon-wrap" style={{ background: '#fef3c7', color: '#d97706' }}>
-            <Calendar size={24} />
+          <div className="kpi-icon-wrap" style={{ background: '#fef3c7', color: '#b45309' }}>
+            <Calendar size={22} />
           </div>
           <div>
             <div className="kpi-val">{kpis.todayAppointments || 0}</div>
-            <div className="kpi-label">Today's Appointments</div>
+            <div className="kpi-label">Today's Apts</div>
           </div>
         </div>
 
         <div className="kpi-card" onClick={() => navigate('/queue')} style={{ cursor: 'pointer' }}>
-          <div className="kpi-icon-wrap" style={{ background: '#fce7f3', color: '#db2777' }}>
-            <Clock size={24} />
+          <div className="kpi-icon-wrap" style={{ background: '#e0f2fe', color: '#0369a1' }}>
+            <Clock size={22} />
           </div>
           <div>
             <div className="kpi-val">{kpis.todayQueue || 0}</div>
-            <div className="kpi-label">Active in Queue</div>
+            <div className="kpi-label">In Queue</div>
           </div>
         </div>
 
         {hasPermission('billing.view') && (
           <div className="kpi-card" onClick={() => navigate('/billing')} style={{ cursor: 'pointer' }}>
-            <div className="kpi-icon-wrap" style={{ background: '#d1fae5', color: '#059669' }}>
-              <IndianRupee size={24} />
+            <div className="kpi-icon-wrap" style={{ background: '#dcfce7', color: '#15803d' }}>
+              <IndianRupee size={22} />
             </div>
             <div>
               <div className="kpi-val">₹{Number(kpis.todayRevenue || 0).toLocaleString('en-IN')}</div>
               <div className="kpi-label">Today's Revenue</div>
-            </div>
-          </div>
-        )}
-
-        {hasPermission('billing.view') && (
-          <div className="kpi-card" onClick={() => navigate('/billing')} style={{ cursor: 'pointer' }}>
-            <div className="kpi-icon-wrap" style={{ background: '#fee2e2', color: '#dc2626' }}>
-              <AlertCircle size={24} />
-            </div>
-            <div>
-              <div className="kpi-val">₹{Number(kpis.totalOutstanding || 0).toLocaleString('en-IN')}</div>
-              <div className="kpi-label">Outstanding Balance</div>
-            </div>
-          </div>
-        )}
-
-        {kpis.pendingVerificationPayments > 0 && (
-          <div className="kpi-card" onClick={() => navigate('/billing?tab=verification')} style={{ cursor: 'pointer', border: '1px solid #f59e0b' }}>
-            <div className="kpi-icon-wrap" style={{ background: '#fef3c7', color: '#b45309' }}>
-              <FileCheck size={24} />
-            </div>
-            <div>
-              <div className="kpi-val" style={{ color: '#b45309' }}>{kpis.pendingVerificationPayments}</div>
-              <div className="kpi-label">Payments to Verify</div>
             </div>
           </div>
         )}
