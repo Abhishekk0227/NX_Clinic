@@ -10,11 +10,21 @@ const app = express();
 // Initialize DB connection
 connectDB();
 
+// Robust CORS Middleware for cross-origin frontend apps (Vercel, Local, Custom domains)
+app.use((req, res, next) => {
+  const origin = req.headers.origin || '*';
+  res.header('Access-Control-Allow-Origin', origin);
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-branch-id');
+  res.header('Access-Control-Allow-Credentials', 'true');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  next();
+});
+
 app.use(helmet({ crossOriginResourcePolicy: false }));
-app.use(cors({
-  origin: '*',
-  credentials: true
-}));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
