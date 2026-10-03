@@ -4,9 +4,9 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const path = require('path');
-const connectDB = require('./config/db');
-const routes = require('./routes');
-const errorHandler = require('./middleware/errorHandler');
+const connectDB = require('./src/config/db');
+const routes = require('./src/routes');
+const errorHandler = require('./src/middleware/errorHandler');
 
 const app = express();
 
@@ -36,7 +36,7 @@ app.get('/api/ready', (req, res) => {
 
 // Master API v1 router
 app.use('/api/v1', routes);
-
+app.use('/',(req,res)=>{res.json({"message":"server is running"})});
 // Central Error Handler
 app.use(errorHandler);
 
@@ -45,4 +45,4 @@ const server = app.listen(PORT, () => {
   console.log(`[Server] HMS V1 Backend running in ${process.env.NODE_ENV || 'development'} on port ${PORT}`);
 });
 
-module.exports = { app, server };
+module.exports =  app;
