@@ -592,15 +592,19 @@ const PatientList = () => {
           <div style={{ padding: '16px', background: '#f0fdf4', borderRadius: '8px', marginBottom: '16px' }}>
             <h3 style={{ fontSize: '14px', marginBottom: '12px', color: '#15803d' }}>3. Route Patient</h3>
             
-            <div className="form-group" style={{ display: 'flex', gap: '20px', marginBottom: '16px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 600 }}>
-                <input type="radio" name="actionType" value="walkin" checked={patientForm.actionType === 'walkin'} onChange={(e) => setPatientForm({ ...patientForm, actionType: e.target.value })} /> 
+            <div className="segmented-control" style={{ marginBottom: '16px' }}>
+              <div 
+                className={`toggle-btn ${patientForm.actionType === 'walkin' ? 'active' : ''}`}
+                onClick={() => setPatientForm({ ...patientForm, actionType: 'walkin' })}
+              >
                 Walk-In Now (Live Queue)
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 600 }}>
-                <input type="radio" name="actionType" value="appointment" checked={patientForm.actionType === 'appointment'} onChange={(e) => setPatientForm({ ...patientForm, actionType: e.target.value })} /> 
+              </div>
+              <div 
+                className={`toggle-btn ${patientForm.actionType === 'appointment' ? 'active' : ''}`}
+                onClick={() => setPatientForm({ ...patientForm, actionType: 'appointment' })}
+              >
                 Schedule Future Appointment
-              </label>
+              </div>
             </div>
 
             <div className="form-row">
@@ -790,15 +794,19 @@ const PatientList = () => {
             {/* Payment Choice for both Walk-in and Appointment */}
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">Payment Choice (Consultation & Services)</label>
-              <div style={{ display: 'flex', gap: '15px', padding: '6px 0' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 500, fontSize: '13px' }}>
-                  <input type="radio" name="paymentStatus" value="paid" checked={patientForm.paymentStatus === 'paid'} onChange={(e) => setPatientForm({ ...patientForm, paymentStatus: e.target.value })} /> 
-                  Pay Now (Advance / Cash Collected)
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 500, fontSize: '13px' }}>
-                  <input type="radio" name="paymentStatus" value="pending" checked={patientForm.paymentStatus === 'pending'} onChange={(e) => setPatientForm({ ...patientForm, paymentStatus: e.target.value })} /> 
+              <div className="segmented-control" style={{ marginTop: '8px' }}>
+                <div 
+                  className={`toggle-btn ${patientForm.paymentStatus === 'paid' ? 'active' : ''}`}
+                  onClick={() => setPatientForm({ ...patientForm, paymentStatus: 'paid' })}
+                >
+                  Pay Now (Advance)
+                </div>
+                <div 
+                  className={`toggle-btn ${patientForm.paymentStatus === 'pending' ? 'active' : ''}`}
+                  onClick={() => setPatientForm({ ...patientForm, paymentStatus: 'pending' })}
+                >
                   Pay After Consultation
-                </label>
+                </div>
               </div>
             </div>
 

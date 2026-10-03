@@ -561,49 +561,37 @@ const QueuePage = () => {
           <div className="form-row">
             <div className="form-group">
               <label className="form-label">Payment Choice</label>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                  <input
-                    type="radio"
-                    name="paymentStatus"
-                    value="paid"
-                    checked={walkInForm.paymentStatus === 'paid'}
-                    onChange={(e) => setWalkInForm({ ...walkInForm, paymentStatus: e.target.value })}
-                  /> Pay Now
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                  <input
-                    type="radio"
-                    name="paymentStatus"
-                    value="pending"
-                    checked={walkInForm.paymentStatus === 'pending'}
-                    onChange={(e) => setWalkInForm({ ...walkInForm, paymentStatus: e.target.value })}
-                  /> Pay After Consultancy
-                </label>
+              <div className="segmented-control">
+                <div
+                  className={`toggle-btn ${walkInForm.paymentStatus === 'paid' ? 'active' : ''}`}
+                  onClick={() => setWalkInForm({ ...walkInForm, paymentStatus: 'paid' })}
+                >
+                  Pay Now
+                </div>
+                <div
+                  className={`toggle-btn ${walkInForm.paymentStatus === 'pending' ? 'active' : ''}`}
+                  onClick={() => setWalkInForm({ ...walkInForm, paymentStatus: 'pending' })}
+                >
+                  Pay After Consultancy
+                </div>
               </div>
             </div>
 
             <div className="form-group">
               <label className="form-label">Visit Type</label>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                  <input
-                    type="radio"
-                    name="caseType"
-                    value="new"
-                    checked={walkInForm.caseType === 'new'}
-                    onChange={(e) => setWalkInForm({ ...walkInForm, caseType: e.target.value })}
-                  /> New Case
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                  <input
-                    type="radio"
-                    name="caseType"
-                    value="follow_up"
-                    checked={walkInForm.caseType === 'follow_up'}
-                    onChange={(e) => setWalkInForm({ ...walkInForm, caseType: e.target.value })}
-                  /> Continue Treatment
-                </label>
+              <div className="segmented-control">
+                <div
+                  className={`toggle-btn ${walkInForm.caseType === 'new' ? 'active' : ''}`}
+                  onClick={() => setWalkInForm({ ...walkInForm, caseType: 'new' })}
+                >
+                  New Case
+                </div>
+                <div
+                  className={`toggle-btn ${walkInForm.caseType === 'follow_up' ? 'active' : ''}`}
+                  onClick={() => setWalkInForm({ ...walkInForm, caseType: 'follow_up' })}
+                >
+                  Continue Treatment
+                </div>
               </div>
             </div>
           </div>

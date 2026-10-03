@@ -808,63 +808,39 @@ a {
   color: var(--text-light);
 }
 
-/* Custom Radio and Checkbox Styling */
-input[type="radio"], input[type="checkbox"] {
-  appearance: none;
-  background-color: var(--input-bg);
-  margin: 0;
-  font: inherit;
-  color: var(--primary);
-  width: 1.15em;
-  height: 1.15em;
+/* Segmented Control / Toggle Group */
+.segmented-control {
+  display: flex;
+  background: #f1f5f9;
+  border-radius: var(--radius-md);
+  padding: 4px;
+  gap: 4px;
   border: 1px solid var(--input-border);
-  display: grid;
-  place-content: center;
+}
+
+.toggle-btn {
+  flex: 1;
+  text-align: center;
+  padding: 8px 16px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
+  border-radius: 6px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background: transparent;
+  border: 1px solid transparent;
 }
 
-input[type="radio"] {
-  border-radius: 50%;
+.toggle-btn:hover {
+  color: var(--text-main);
 }
 
-input[type="checkbox"] {
-  border-radius: 4px;
-}
-
-input[type="radio"]::before {
-  content: "";
-  width: 0.6em;
-  height: 0.6em;
-  border-radius: 50%;
-  transform: scale(0);
-  transition: 120ms transform ease-in-out;
-  background-color: var(--text-inverse);
-}
-
-input[type="checkbox"]::before {
-  content: "";
-  width: 0.65em;
-  height: 0.65em;
-  transform: scale(0);
-  transition: 120ms transform ease-in-out;
-  box-shadow: inset 1em 1em var(--text-inverse);
-  background-color: var(--text-inverse);
-  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
-}
-
-input[type="radio"]:checked, input[type="checkbox"]:checked {
-  background-color: var(--primary);
-  border-color: var(--primary);
-}
-
-input[type="radio"]:focus, input[type="checkbox"]:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
-}
-
-input[type="radio"]:checked::before, input[type="checkbox"]:checked::before {
-  transform: scale(1);
+.toggle-btn.active {
+  background: #ffffff;
+  color: var(--primary-black);
+  box-shadow: var(--shadow-sm);
+  border-color: var(--input-border);
 }
 
 .form-row {
