@@ -45,4 +45,4 @@ const server = app.listen(PORT, () => {
   console.log(`[Server] HMS V1 Backend running in ${process.env.NODE_ENV || 'development'} on port ${PORT}`);
 });
 
-module.exports = { app, server };
+module.exports =  app;
