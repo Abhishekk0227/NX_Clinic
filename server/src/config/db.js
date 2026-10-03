@@ -10,7 +10,6 @@ const connectDB = async () => {
   const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/hms_db';
   try {
     const conn = await mongoose.connect(uri, {
-      bufferCommands: false,
       serverSelectionTimeoutMS: 5000
     });
     cachedConn = conn;
