@@ -16,7 +16,8 @@ import {
   FileCheck,
   Search,
   Check,
-  X
+  X,
+  Trash2
 } from 'lucide-react';
 
 const BillingPage = () => {
@@ -172,6 +173,28 @@ const BillingPage = () => {
         taxTotal: 0,
         notes: ''
       });
+      fetchBillingData();
+    } catch (err) {
+      addToast(err.message, 'error');
+    }
+  };
+
+  const handleDeleteInvoice = async (invoiceId) => {
+    if (!window.confirm('Are you sure you want to delete this invoice? Related payments and receipts will also be deleted.')) return;
+    try {
+      await api.billing.deleteInvoice(invoiceId);
+      addToast('Invoice deleted', 'success');
+      fetchBillingData();
+    } catch (err) {
+      addToast(err.message, 'error');
+    }
+  };
+
+  const handleDeletePayment = async (paymentId) => {
+    if (!window.confirm('Are you sure you want to delete this payment? The invoice balance will be updated.')) return;
+    try {
+      await api.billing.deletePayment(paymentId);
+      addToast('Payment deleted', 'success');
       fetchBillingData();
     } catch (err) {
       addToast(err.message, 'error');
@@ -429,12 +452,22 @@ const BillingPage = () => {
                                 <FileText size={13} /> {inv.status === 'paid' ? 'Rx' : 'Rx 🔒'}
                               </button>
                             )}
-                            <button
-                              className="btn btn-secondary btn-sm"
-                              onClick={() => navigate(`/billing/invoices/${inv.invoiceId}`)}
-                            >
-                              <Eye size={13} /> View
-                            </button>
+                              <button
+                                className="btn btn-secondary btn-sm"
+                                onClick={() => navigate(`/billing/invoices/${inv.invoiceId}`)}
+                              >
+                                <Eye size={13} /> View
+                              </button>
+                              {hasPermission('billing.edit') && (
+                                <button
+                                  className="btn btn-icon btn-sm"
+                                  style={{ color: 'red' }}
+                                  onClick={() => handleDeleteInvoice(inv.invoiceId)}
+                                  title="Delete Invoice"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              )}
                           </div>
                         </td>
                       </tr>
@@ -467,6 +500,7 @@ const BillingPage = () => {
                   <th>Reference / Note</th>
                   <th>Amount</th>
                   <th>Status</th>
+                  <th style={{ textAlign: 'right' }}>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -488,6 +522,18 @@ const BillingPage = () => {
                         <span className={`badge ${p.status === 'verified' ? 'badge-success' : 'badge-warning'}`}>
                           {p.status.replace('_', ' ')}
                         </span>
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        {hasPermission('payment.edit') && (
+                          <button
+                            className="btn btn-icon btn-sm"
+                            style={{ color: 'red' }}
+                            onClick={() => handleDeletePayment(p.paymentId)}
+                            title="Delete Payment"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))

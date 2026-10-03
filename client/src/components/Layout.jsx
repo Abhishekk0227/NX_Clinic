@@ -73,7 +73,7 @@ const Layout = () => {
     return hasPermission(item.permission);
   });
 
-  const canAccessAdmin = user?.role === 'admin' || hasPermission('admin.manage');
+  const canAccessAdmin = user?.role === 'super_admin' || hasPermission('admin.manage') || hasPermission('admin.branches') || hasPermission('admin.users') || hasPermission('admin.roles') || hasPermission('admin.services') || hasPermission('admin.forms');
 
   // Breadcrumbs calculation
   const pathSnippets = location.pathname.split('/').filter(Boolean);

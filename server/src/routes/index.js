@@ -32,23 +32,23 @@ router.use(tenantScope);
 
 // 2. Organization, Branches & Departments
 router.get('/organizations/current', OrganizationController.getCurrent);
-router.put('/organizations/current', checkPermission('admin.manage'), OrganizationController.updateCurrent);
+router.put('/organizations/current', checkPermission('admin.branches'), OrganizationController.updateCurrent);
 router.get('/organizations/branches', OrganizationController.getBranches);
-router.post('/organizations/branches', checkPermission('admin.manage'), OrganizationController.createBranch);
-router.put('/organizations/branches/:id', checkPermission('admin.manage'), OrganizationController.updateBranch);
-router.delete('/organizations/branches/:id', checkPermission('admin.manage'), OrganizationController.deleteBranch);
+router.post('/organizations/branches', checkPermission('admin.branches'), OrganizationController.createBranch);
+router.put('/organizations/branches/:id', checkPermission('admin.branches'), OrganizationController.updateBranch);
+router.delete('/organizations/branches/:id', checkPermission('admin.branches'), OrganizationController.deleteBranch);
 router.get('/organizations/departments', OrganizationController.getDepartments);
-router.post('/organizations/departments', checkPermission('admin.manage'), OrganizationController.createDepartment);
+router.post('/organizations/departments', checkPermission('admin.branches'), OrganizationController.createDepartment);
 
 // 3. Staff, Users, Roles, Permissions
-router.get('/users', checkPermission('admin.manage'), UserController.getUsers);
-router.post('/users', checkPermission('admin.manage'), UserController.createUser);
-router.put('/users/:id', checkPermission('admin.manage'), UserController.updateUser);
-router.delete('/users/:id', checkPermission('admin.manage'), UserController.deleteUser);
-router.get('/roles', checkPermission('admin.manage'), UserController.getRoles);
-router.post('/roles', checkPermission('admin.manage'), UserController.createRole);
-router.put('/roles/:id', checkPermission('admin.manage'), UserController.updateRole);
-router.delete('/roles/:id', checkPermission('admin.manage'), async (req, res, next) => {
+router.get('/users', checkPermission('admin.users'), UserController.getUsers);
+router.post('/users', checkPermission('admin.users'), UserController.createUser);
+router.put('/users/:id', checkPermission('admin.users'), UserController.updateUser);
+router.delete('/users/:id', checkPermission('admin.users'), UserController.deleteUser);
+router.get('/roles', checkPermission('admin.roles'), UserController.getRoles);
+router.post('/roles', checkPermission('admin.roles'), UserController.createRole);
+router.put('/roles/:id', checkPermission('admin.roles'), UserController.updateRole);
+router.delete('/roles/:id', checkPermission('admin.roles'), async (req, res, next) => {
     try {
       const role = await require('../models').Role.findOne({ roleId: req.params.id, organizationId: req.organizationId });
       if(!role) return res.status(404).json({success: false});
@@ -56,11 +56,11 @@ router.delete('/roles/:id', checkPermission('admin.manage'), async (req, res, ne
       res.json({success: true});
     } catch(err){next(err);}
   });
-router.get('/permissions', checkPermission('admin.manage'), UserController.getPermissions);
+router.get('/permissions', checkPermission('admin.roles'), UserController.getPermissions);
 router.get('/staff', UserController.getStaff);
-router.post('/staff', checkPermission('admin.manage'), UserController.createStaff);
-router.put('/staff/:id', checkPermission('admin.manage'), UserController.updateStaff);
-router.delete('/staff/:id', checkPermission('admin.manage'), UserController.deleteStaff);
+router.post('/staff', checkPermission('admin.users'), UserController.createStaff);
+router.put('/staff/:id', checkPermission('admin.users'), UserController.updateStaff);
+router.delete('/staff/:id', checkPermission('admin.users'), UserController.deleteStaff);
 
 // 4. Patients
 router.get('/patients', checkPermission('patients.view'), PatientController.getPatients);
@@ -86,6 +86,7 @@ router.post('/queue/:id/call', checkPermission('queue.manage'), QueueController.
 router.post('/queue/:id/start-consultation', checkPermission('clinical.view'), QueueController.startConsultation);
 router.post('/queue/:id/complete', checkPermission('queue.manage'), QueueController.completeQueue);
 router.post('/queue/:id/skip', checkPermission('queue.manage'), QueueController.skipQueue);
+router.post('/queue/:id/restore', checkPermission('queue.manage'), QueueController.restoreQueue);
 
 // 7. Clinical
 router.get('/clinical/encounters', checkPermission('clinical.view'), ClinicalController.getEncounters);
@@ -97,22 +98,26 @@ router.post('/clinical/encounters/:id/complete', checkPermission('clinical.creat
 
 // 8. Services & Vital Parameters
 router.get('/services', ServiceController.getServices);
-router.post('/services', checkPermission('admin.manage'), ServiceController.createService);
-router.put('/services/:id', checkPermission('admin.manage'), ServiceController.updateService);
-router.delete('/services/:id', checkPermission('admin.manage'), ServiceController.deleteService);
+router.post('/services', checkPermission('admin.services'), ServiceController.createService);
+router.put('/services/:id', checkPermission('admin.services'), ServiceController.updateService);
+router.delete('/services/:id', checkPermission('admin.services'), ServiceController.deleteService);
 
 // 8b. Clinical Vitals & Triage Configuration
 router.get('/vital-params', VitalParamController.getVitalParams);
-router.post('/vital-params', checkPermission('admin.manage'), VitalParamController.createVitalParam);
-router.put('/vital-params/:id', checkPermission('admin.manage'), VitalParamController.updateVitalParam);
-router.delete('/vital-params/:id', checkPermission('admin.manage'), VitalParamController.deleteVitalParam);
+router.post('/vital-params', checkPermission('admin.services'), VitalParamController.createVitalParam);
+router.put('/vital-params/:id', checkPermission('admin.services'), VitalParamController.updateVitalParam);
+router.delete('/vital-params/:id', checkPermission('admin.services'), VitalParamController.deleteVitalParam);
 
 // 9. Billing, Payments & Receipts
 router.get('/billing/invoices', checkPermission('billing.view'), BillingController.getInvoices);
 router.post('/billing/invoices', checkPermission('billing.create'), BillingController.createInvoice);
 router.get('/billing/invoices/:id', checkPermission('billing.view'), BillingController.getInvoiceById);
+router.put('/billing/invoices/:id', checkPermission('billing.edit'), BillingController.updateInvoice);
+router.delete('/billing/invoices/:id', checkPermission('billing.edit'), BillingController.deleteInvoice);
 router.post('/billing/payments', checkPermission('payment.create'), BillingController.receivePayment);
 router.get('/billing/payments', checkPermission('payment.view'), BillingController.getPayments);
+router.put('/billing/payments/:id', checkPermission('payment.edit'), BillingController.updatePayment);
+router.delete('/billing/payments/:id', checkPermission('payment.edit'), BillingController.deletePayment);
 router.post('/billing/payments/:id/verify', checkPermission('payment.verify'), BillingController.verifyPayment);
 router.get('/billing/receipts', checkPermission('billing.view'), BillingController.getReceipts);
 router.get('/billing/receipts/:id', checkPermission('billing.view'), BillingController.getReceiptById);
@@ -121,12 +126,12 @@ router.post('/billing/refunds', checkPermission('payment.refund'), BillingContro
 // 10. Dynamic Forms & Workflows
 router.get('/forms', DynamicController.getForms);
 router.get('/forms/:key', DynamicController.getFormByKey);
-router.post('/forms', checkPermission('admin.manage'), DynamicController.createForm);
-router.put('/forms/:id', checkPermission('admin.manage'), DynamicController.updateForm);
+router.post('/forms', checkPermission('admin.forms'), DynamicController.createForm);
+router.put('/forms/:id', checkPermission('admin.forms'), DynamicController.updateForm);
 router.post('/forms/submissions', DynamicController.submitFormValues);
 router.get('/forms/submissions/:entityId', DynamicController.getFormSubmission);
 router.get('/workflows', DynamicController.getWorkflows);
-router.post('/workflows', checkPermission('admin.manage'), DynamicController.createWorkflow);
+router.post('/workflows', checkPermission('admin.forms'), DynamicController.createWorkflow);
 
 // 11. Documents & Follow-ups
 router.get('/documents', checkPermission('documents.view'), DocumentController.getDocuments);

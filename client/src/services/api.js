@@ -76,6 +76,8 @@ export const api = {
     fetch(`${API_BASE}/roles`, { method: 'POST', headers: getHeaders(), body: JSON.stringify(body) }).then(handleResponse),
   updateRole: (id, body) =>
     fetch(`${API_BASE}/roles/${id}`, { method: 'PUT', headers: getHeaders(), body: JSON.stringify(body) }).then(handleResponse),
+  deleteRole: (id) =>
+    fetch(`${API_BASE}/roles/${id}`, { method: 'DELETE', headers: getHeaders() }).then(handleResponse),
   getPermissions: () =>
     fetch(`${API_BASE}/permissions`, { headers: getHeaders() }).then(handleResponse),
   getStaff: () =>
@@ -137,6 +139,8 @@ export const api = {
     fetch(`${API_BASE}/queue/${id}/complete`, { method: 'POST', headers: getHeaders() }).then(handleResponse),
   skipQueue: (id) =>
     fetch(`${API_BASE}/queue/${id}/skip`, { method: 'POST', headers: getHeaders() }).then(handleResponse),
+  restoreQueue: (id) =>
+    fetch(`${API_BASE}/queue/${id}/restore`, { method: 'POST', headers: getHeaders() }).then(handleResponse),
 
   // Clinical
   getEncounters: (params = {}) => {
@@ -187,12 +191,20 @@ export const api = {
     fetch(`${API_BASE}/billing/invoices/${id}`, { headers: getHeaders() }).then(handleResponse),
   createInvoice: (body) =>
     fetch(`${API_BASE}/billing/invoices`, { method: 'POST', headers: getHeaders(), body: JSON.stringify(body) }).then(handleResponse),
+  updateInvoice: (id, body) =>
+    fetch(`${API_BASE}/billing/invoices/${id}`, { method: 'PUT', headers: getHeaders(), body: JSON.stringify(body) }).then(handleResponse),
+  deleteInvoice: (id) =>
+    fetch(`${API_BASE}/billing/invoices/${id}`, { method: 'DELETE', headers: getHeaders() }).then(handleResponse),
   receivePayment: (body) =>
     fetch(`${API_BASE}/billing/payments`, { method: 'POST', headers: getHeaders(), body: JSON.stringify(body) }).then(handleResponse),
   getPayments: (params = {}) => {
     const qs = toQueryString(params);
     return fetch(`${API_BASE}/billing/payments?${qs}`, { headers: getHeaders() }).then(handleResponse);
   },
+  updatePayment: (id, body) =>
+    fetch(`${API_BASE}/billing/payments/${id}`, { method: 'PUT', headers: getHeaders(), body: JSON.stringify(body) }).then(handleResponse),
+  deletePayment: (id) =>
+    fetch(`${API_BASE}/billing/payments/${id}`, { method: 'DELETE', headers: getHeaders() }).then(handleResponse),
   verifyPayment: (id, body) =>
     fetch(`${API_BASE}/billing/payments/${id}/verify`, { method: 'POST', headers: getHeaders(), body: JSON.stringify(body) }).then(handleResponse),
   getReceipts: (params = {}) => {

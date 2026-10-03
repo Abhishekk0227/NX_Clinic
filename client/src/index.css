@@ -664,6 +664,7 @@ a {
   border-bottom: 1px solid var(--border);
   color: var(--text-main);
   vertical-align: middle;
+  white-space: nowrap;
 }
 
 .data-table tr:hover td {
@@ -680,6 +681,7 @@ a {
   font-size: 11.5px;
   font-weight: 600;
   text-transform: capitalize;
+  white-space: nowrap;
 }
 
 .badge-info { background: var(--status-info-light); color: #1d4ed8; }
@@ -806,6 +808,65 @@ a {
   color: var(--text-light);
 }
 
+/* Custom Radio and Checkbox Styling */
+input[type="radio"], input[type="checkbox"] {
+  appearance: none;
+  background-color: var(--input-bg);
+  margin: 0;
+  font: inherit;
+  color: var(--primary);
+  width: 1.15em;
+  height: 1.15em;
+  border: 1px solid var(--input-border);
+  display: grid;
+  place-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+input[type="radio"] {
+  border-radius: 50%;
+}
+
+input[type="checkbox"] {
+  border-radius: 4px;
+}
+
+input[type="radio"]::before {
+  content: "";
+  width: 0.6em;
+  height: 0.6em;
+  border-radius: 50%;
+  transform: scale(0);
+  transition: 120ms transform ease-in-out;
+  background-color: var(--text-inverse);
+}
+
+input[type="checkbox"]::before {
+  content: "";
+  width: 0.65em;
+  height: 0.65em;
+  transform: scale(0);
+  transition: 120ms transform ease-in-out;
+  box-shadow: inset 1em 1em var(--text-inverse);
+  background-color: var(--text-inverse);
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+
+input[type="radio"]:checked, input[type="checkbox"]:checked {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+input[type="radio"]:focus, input[type="checkbox"]:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
+}
+
+input[type="radio"]:checked::before, input[type="checkbox"]:checked::before {
+  transform: scale(1);
+}
+
 .form-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -900,6 +961,7 @@ a {
   border-radius: var(--radius-sm);
   display: inline-block;
   font-family: var(--font-heading);
+  white-space: nowrap;
 }
 
 /* Toast Notifications */
@@ -1431,6 +1493,10 @@ a {
     margin: 0 !important;
     height: auto !important;
     overflow: visible !important;
+  }
+
+  .data-table td, .data-table th {
+    white-space: normal !important;
   }
 
   .print-page {

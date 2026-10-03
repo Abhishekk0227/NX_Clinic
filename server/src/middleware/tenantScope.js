@@ -32,6 +32,7 @@ const tenantScope = async (req, res, next) => {
 
     next();
   } catch (error) {
+    console.error('Tenant scope error:', error);
     return res.status(500).json({
       success: false,
       error: { code: 'TENANT_SCOPE_ERROR', message: 'Failed to resolve tenant scope', details: error.message }
@@ -42,7 +43,7 @@ const tenantScope = async (req, res, next) => {
 const checkPermission = (requiredPermission) => {
   return (req, res, next) => {
     // Admin role has universal bypass
-    if (req.role === 'admin' || req.permissions.includes('*')) {
+    if (req.role === 'super_admin' || req.permissions.includes('*')) {
       return next();
     }
 

@@ -649,6 +649,125 @@ class BillingController {
       next(err);
     }
   }
+
+  static async updateInvoice(req, res, next) {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      const invoice = await Invoice.findOne({ invoiceId: id, organizationId: req.organizationId });
+      if (!invoice) return res.status(404).json({ success: false, error: { message: 'Invoice not found' } });
+
+      const oldTotal = invoice.total;
+      
+      if (updates.items) {
+        let sub = 0;
+        updates.items.forEach(item => {
+          item.total = (item.quantity * item.unitPrice) - (item.discount || 0);
+          sub += item.total;
+        });
+        invoice.items = updates.items;
+        invoice.subtotal = sub;
+        invoice.discountTotal = updates.discountTotal || 0;
+        invoice.taxTotal = updates.taxTotal || 0;
+        invoice.total = sub - invoice.discountTotal + invoice.taxTotal;
+      }
+      
+      if (updates.status) invoice.status = updates.status;
+      if (updates.notes) invoice.notes = updates.notes;
+      if (updates.dueDate) invoice.dueDate = updates.dueDate;
+
+      invoice.balance = Math.max(0, invoice.total - invoice.paidAmount);
+      if (invoice.balance <= 0) invoice.status = 'paid';
+      else if (invoice.paidAmount > 0) invoice.status = 'partially_paid';
+      else invoice.status = 'draft';
+
+      const diff = invoice.total - oldTotal;
+      if (diff !== 0) {
+        await Patient.updateOne({ patientId: invoice.patientId }, { $inc: { balance: diff } });
+      }
+
+      await invoice.save();
+      return res.json({ success: true, message: 'Invoice updated', data: invoice });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async deleteInvoice(req, res, next) {
+    try {
+      const { id } = req.params;
+      const invoice = await Invoice.findOne({ invoiceId: id, organizationId: req.organizationId });
+      if (!invoice) return res.status(404).json({ success: false, error: { message: 'Invoice not found' } });
+
+      await Patient.updateOne({ patientId: invoice.patientId }, { $inc: { balance: -invoice.balance } });
+      
+      await Payment.deleteMany({ invoiceId: id });
+      await Receipt.deleteMany({ invoiceId: id });
+      await invoice.deleteOne();
+      
+      return res.json({ success: true, message: 'Invoice deleted' });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async updatePayment(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { amount, method, notes } = req.body;
+      const payment = await Payment.findOne({ paymentId: id, organizationId: req.organizationId });
+      if (!payment) return res.status(404).json({ success: false, error: { message: 'Payment not found' } });
+
+      const oldAmount = payment.amount;
+      payment.amount = amount !== undefined ? amount : payment.amount;
+      payment.method = method || payment.method;
+      payment.notes = notes || payment.notes;
+      await payment.save();
+
+      const diff = payment.amount - oldAmount;
+      if (diff !== 0) {
+        const invoice = await Invoice.findOne({ invoiceId: payment.invoiceId });
+        if (invoice) {
+          invoice.paidAmount += diff;
+          invoice.balance = Math.max(0, invoice.total - invoice.paidAmount);
+          if (invoice.balance <= 0) invoice.status = 'paid';
+          else if (invoice.paidAmount > 0) invoice.status = 'partially_paid';
+          else invoice.status = 'draft';
+          await invoice.save();
+        }
+        await Patient.updateOne({ patientId: payment.patientId }, { $inc: { balance: -diff } });
+      }
+
+      return res.json({ success: true, message: 'Payment updated', data: payment });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async deletePayment(req, res, next) {
+    try {
+      const { id } = req.params;
+      const payment = await Payment.findOne({ paymentId: id, organizationId: req.organizationId });
+      if (!payment) return res.status(404).json({ success: false, error: { message: 'Payment not found' } });
+
+      const invoice = await Invoice.findOne({ invoiceId: payment.invoiceId });
+      if (invoice) {
+        invoice.paidAmount = Math.max(0, invoice.paidAmount - payment.amount);
+        invoice.balance = invoice.total - invoice.paidAmount;
+        if (invoice.balance <= 0) invoice.status = 'paid';
+        else if (invoice.paidAmount > 0) invoice.status = 'partially_paid';
+        else invoice.status = 'draft';
+        await invoice.save();
+      }
+
+      await Patient.updateOne({ patientId: payment.patientId }, { $inc: { balance: payment.amount } });
+      await payment.deleteOne();
+
+      return res.json({ success: true, message: 'Payment deleted' });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 module.exports = BillingController;

@@ -4,7 +4,8 @@ const {
   Staff,
   Service,
   Encounter,
-  Branch
+  Branch,
+  AuditLog
 } = require('../models');
 const { generateId } = require('../utils/idGenerator');
 const AuditService = require('../services/AuditService');
@@ -24,7 +25,7 @@ class QueueController {
         query.status = status;
       } else if (!status) {
         // Default to active statuses
-        query.status = { $in: ['waiting', 'called', 'in_consultation'] };
+        query.status = { $in: ['waiting', 'called', 'in_consultation', 'skipped'] };
       }
 
       // Filter by today or specified date
@@ -269,6 +270,37 @@ class QueueController {
       await entry.save();
 
       return res.json({ success: true, message: 'Queue entry marked as skipped', data: entry });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  // Restore skipped token back to waiting
+  static async restoreQueue(req, res, next) {
+    try {
+      const entry = await QueueEntry.findOne({ queueEntryId: req.params.id });
+      if (!entry) {
+        return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Queue entry not found' } });
+      }
+
+      entry.status = 'waiting';
+      await entry.save();
+
+      // Log activity
+      const reqUser = req.user || { userId: 'system', name: 'System' };
+      await AuditLog.create({
+        action: 'QUEUE_RESTORED',
+        resourceType: 'Queue',
+        resourceId: entry.queueEntryId,
+        performedBy: reqUser.userId,
+        details: {
+          patientId: entry.patientId,
+          after: { status: 'waiting' }
+        },
+        branchId: entry.branchId
+      });
+
+      return res.json({ success: true, message: 'Queue entry restored to waiting', data: entry });
     } catch (err) {
       next(err);
     }

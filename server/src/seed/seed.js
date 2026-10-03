@@ -235,8 +235,8 @@ const seedDatabase = async () => {
       {
         roleId: adminRoleId,
         organizationId,
-        name: 'Administrator',
-        key: 'admin',
+        name: 'Super Admin',
+        key: 'super_admin',
         description: 'Full administrative access across all clinics and modules',
         isSystem: true,
         permissions: permissionDefs.map(p => p.key)
@@ -365,7 +365,7 @@ const seedDatabase = async () => {
         phone: '+91 98980 00001',
         passwordHash: adminPassword,
         roleId: adminRoleId,
-        roleKey: 'admin',
+        roleKey: 'super_admin',
         status: 'active'
       },
       {

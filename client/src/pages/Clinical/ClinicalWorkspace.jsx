@@ -394,8 +394,7 @@ const ClinicalWorkspace = () => {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 460px), 1fr))', gap: '20px', alignItems: 'start' }}>
         
         {/* ========================================================================= */}
-        {/* LEFT COLUMN: COMPLETE PREVIOUS VISIT HISTORY & LONGITUDINAL PATIENT TIMELINE */}
-        {/* ========================================================================= */}
+        {workspace.previousVisits && workspace.previousVisits.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           
           <div className="card" style={{ background: '#f8fafc', border: '1.5px solid #cbd5e1', padding: '20px', minHeight: '520px', display: 'flex', flexDirection: 'column' }}>
@@ -615,6 +614,7 @@ const ClinicalWorkspace = () => {
           </div>
 
         </div>
+        )}
 
         {/* ========================================================================= */}
         {/* RIGHT COLUMN: CURRENT VISIT CONSULTATION ENTRY, VITALS, RX & PROCEDURES    */}
@@ -651,7 +651,7 @@ const ClinicalWorkspace = () => {
               <span style={{ fontSize: '11px', color: '#64748b' }}>Live Triage & Doctor Vitals</span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '10px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
               {(configuredVitals && configuredVitals.length > 0 ? configuredVitals : [
                 { key: 'bpSystolic', name: 'BP Systolic', unit: 'mmHg', inputType: 'numeric', normalRange: '90-120' },
                 { key: 'bpDiastolic', name: 'BP Diastolic', unit: 'mmHg', inputType: 'numeric', normalRange: '60-80' },
@@ -663,7 +663,7 @@ const ClinicalWorkspace = () => {
                 const val = record.vitals?.[param.key] || '';
                 return (
                   <div key={param.key} className="form-group" style={{ marginBottom: 0 }}>
-                    <label className="form-label" style={{ fontSize: '11px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={param.name}>
+                    <label className="form-label" style={{ fontSize: '11.5px', lineHeight: '1.4' }}>
                       {param.name} {param.unit ? `(${param.unit})` : ''} {param.isMandatory ? '*' : ''}
                     </label>
                     <input

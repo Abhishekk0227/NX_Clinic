@@ -67,6 +67,7 @@ const PatientList = () => {
     message: '',
     existingPatient: null
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { branch, branches, hasPermission } = useAuth();
   const { addToast } = useToast();
@@ -135,6 +136,8 @@ const PatientList = () => {
 
   const handleCreatePatient = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     try {
       const payload = {
         name: patientForm.name,
@@ -196,6 +199,8 @@ const PatientList = () => {
       } else {
         addToast(err.message, 'error');
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -703,25 +708,78 @@ const PatientList = () => {
                   </div>
                   
                   {patientForm.paymentStatus === 'paid' && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', fontWeight: 'bold', color: '#15803d' }}>
-                      <span>Amount Paid (Exact Final Amount):</span>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <span>₹</span>
-                        <input
-                          type="number"
-                          required
-                          className="form-input"
-                          style={{ width: '90px', padding: '4px', fontWeight: 'bold', color: '#15803d', borderColor: '#86efac' }}
-                          value={patientForm.billingDetails?.paidAmount ?? finalPrice}
-                          onChange={(e) => setPatientForm({
-                            ...patientForm,
-                            billingDetails: {
-                              ...patientForm.billingDetails,
-                              paidAmount: e.target.value === '' ? '' : Number(e.target.value)
-                            }
-                          })}
-                          placeholder={String(finalPrice)}
-                        />
+                    <div style={{ marginTop: '12px', padding: '12px', background: '#f0fdf4', borderRadius: '6px', border: '1px solid #bbf7d0' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: patientForm.billingDetails?.paymentMethod === 'mixed' ? '1.2fr 1fr 1fr' : '1fr 120px', gap: '15px' }}>
+                        <div>
+                          <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#166534', marginBottom: '4px', display: 'block' }}>Payment Method</label>
+                          <select
+                            className="form-input"
+                            style={{ padding: '6px', fontSize: '13px', borderColor: '#86efac', width: '100%' }}
+                            value={patientForm.billingDetails?.paymentMethod || 'cash'}
+                            onChange={(e) => setPatientForm({
+                              ...patientForm,
+                              billingDetails: {
+                                ...patientForm.billingDetails,
+                                paymentMethod: e.target.value,
+                                paidAmount: e.target.value !== 'mixed' ? (patientForm.billingDetails?.paidAmount ?? finalPrice) : 0,
+                                cashAmount: e.target.value === 'mixed' ? (patientForm.billingDetails?.cashAmount || 0) : 0,
+                                onlineAmount: e.target.value === 'mixed' ? (patientForm.billingDetails?.onlineAmount || 0) : 0
+                              }
+                            })}
+                          >
+                            <option value="cash">Cash</option>
+                            <option value="upi">Online / UPI</option>
+                            <option value="mixed">Mixed</option>
+                          </select>
+                        </div>
+                        {patientForm.billingDetails?.paymentMethod !== 'mixed' && (
+                          <div>
+                            <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#166534', marginBottom: '4px', display: 'block' }}>Amount Paid</label>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <span style={{color: '#15803d', fontWeight: 'bold'}}>₹</span>
+                              <input
+                                type="number" required
+                                className="form-input"
+                                style={{ padding: '6px', fontWeight: 'bold', color: '#15803d', borderColor: '#86efac', width: '100%' }}
+                                value={patientForm.billingDetails?.paidAmount ?? finalPrice}
+                                onChange={(e) => setPatientForm({
+                                  ...patientForm,
+                                  billingDetails: { ...patientForm.billingDetails, paidAmount: e.target.value === '' ? '' : Number(e.target.value) }
+                                })}
+                              />
+                            </div>
+                          </div>
+                        )}
+                        {patientForm.billingDetails?.paymentMethod === 'mixed' && (
+                          <>
+                            <div>
+                              <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#166534', marginBottom: '4px', display: 'block' }}>Cash Amt</label>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <span style={{color: '#15803d', fontWeight: 'bold'}}>₹</span>
+                                <input type="number" required className="form-input" style={{ padding: '6px', borderColor: '#86efac', width: '100%' }}
+                                  value={patientForm.billingDetails?.cashAmount || ''}
+                                  onChange={(e) => setPatientForm({
+                                    ...patientForm,
+                                    billingDetails: { ...patientForm.billingDetails, cashAmount: Number(e.target.value) }
+                                  })}
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#166534', marginBottom: '4px', display: 'block' }}>Online Amt</label>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <span style={{color: '#15803d', fontWeight: 'bold'}}>₹</span>
+                                <input type="number" required className="form-input" style={{ padding: '6px', borderColor: '#86efac', width: '100%' }}
+                                  value={patientForm.billingDetails?.onlineAmount || ''}
+                                  onChange={(e) => setPatientForm({
+                                    ...patientForm,
+                                    billingDetails: { ...patientForm.billingDetails, onlineAmount: Number(e.target.value) }
+                                  })}
+                                />
+                              </div>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   )}
@@ -756,8 +814,8 @@ const PatientList = () => {
             <button type="button" className="btn btn-secondary" onClick={() => setIsNewPatientOpen(false)}>
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary" style={{ padding: '8px 24px', fontSize: '15px', fontWeight: 600 }}>
-              {patientForm.actionType === 'walkin' ? 'Register & Generate Token' : 'Register & Schedule'}
+            <button type="submit" className="btn btn-primary" style={{ padding: '8px 24px', fontSize: '15px', fontWeight: 600 }} disabled={isSubmitting}>
+              {isSubmitting ? 'Processing...' : (patientForm.actionType === 'walkin' ? 'Register & Generate Token' : 'Register & Schedule')}
             </button>
           </div>
         </form>

@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 
 const AdminHub = () => {
+  const { user, hasPermission } = useAuth();
   const [activeTab, setActiveTab] = useState('org');
   const [org, setOrg] = useState(null);
   const [branches, setBranches] = useState([]);
@@ -478,16 +479,23 @@ const AdminHub = () => {
     return <div style={{ padding: '40px', textAlign: 'center' }}>Loading administration configuration...</div>;
   }
 
-  const adminTabs = [
-    { key: 'org', label: 'Organization & Branches', icon: Building },
-    { key: 'users', label: `Staff & Users (${users.length})`, icon: Users },
-    { key: 'roles', label: `Roles & RBAC (${roles.length})`, icon: KeyRound },
-    { key: 'services', label: `Services Catalog (${services.length})`, icon: Layers },
-    { key: 'vitals', label: `Vitals & Triage (${vitalParams.length})`, icon: HeartPulse },
-    { key: 'forms', label: `Dynamic Forms (${forms.length})`, icon: FileCode },
-    { key: 'workflows', label: `Workflows (${workflows.length})`, icon: GitBranch },
-    { key: 'audit', label: `Audit & Activity (${auditLogs.length})`, icon: Activity }
+  const allAdminTabs = [
+    { key: 'org', label: 'Organization & Branches', icon: Building, permission: 'admin.branches' },
+    { key: 'users', label: `Staff & Users (${users.length})`, icon: Users, permission: 'admin.users' },
+    { key: 'roles', label: `Roles & RBAC (${roles.length})`, icon: KeyRound, permission: 'admin.roles' },
+    { key: 'services', label: `Services Catalog (${services.length})`, icon: Layers, permission: 'admin.services' },
+    { key: 'vitals', label: `Vitals & Triage (${vitalParams.length})`, icon: HeartPulse, permission: 'admin.services' },
+    { key: 'forms', label: `Dynamic Forms (${forms.length})`, icon: FileCode, permission: 'admin.forms' },
+    { key: 'workflows', label: `Workflows (${workflows.length})`, icon: GitBranch, permission: 'admin.forms' },
+    { key: 'audit', label: `Audit & Activity (${auditLogs.length})`, icon: Activity, permission: 'admin.manage' }
   ];
+
+  const adminTabs = allAdminTabs.filter(t => user?.role === 'super_admin' || hasPermission('admin.manage') || hasPermission(t.permission));
+
+  // Automatically select the first available tab if the current activeTab is not permitted
+  if (adminTabs.length > 0 && !adminTabs.find(t => t.key === activeTab)) {
+    setActiveTab(adminTabs[0].key);
+  }
 
   return (
     <div>
@@ -724,7 +732,7 @@ const AdminHub = () => {
                   <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                     <span className="badge badge-neutral">{r.key}</span>
                     <button className="btn btn-icon" onClick={() => openEditRole(r)}><Edit2 size={14} /></button>
-                    <button className="btn btn-icon" style={{color: 'red'}} onClick={() => handleDeleteRole(r.roleId)}><Trash2 size={14} /></button>
+                    {r.key !== 'super_admin' && <button className="btn btn-icon" style={{color: 'red'}} onClick={() => handleDeleteRole(r.roleId)}><Trash2 size={14} /></button>}
                   </div>
                 </div>
                 <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px' }}>{r.description}</p>

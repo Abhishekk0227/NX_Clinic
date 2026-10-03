@@ -151,6 +151,16 @@ const QueuePage = () => {
     }
   };
 
+  const handleRestore = async (queueEntryId) => {
+    try {
+      await api.restoreQueue(queueEntryId);
+      addToast('Token restored to waiting', 'success');
+      fetchQueue();
+    } catch (err) {
+      addToast(err.message, 'error');
+    }
+  };
+
   const handleWalkInSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -180,6 +190,7 @@ const QueuePage = () => {
   const waitingTokens = queue.filter((q) => q.status === 'waiting');
   const calledTokens = queue.filter((q) => q.status === 'called');
   const activeConsultationTokens = queue.filter((q) => q.status === 'in_consultation');
+  const skippedTokens = queue.filter((q) => q.status === 'skipped');
 
   return (
     <div>
@@ -264,7 +275,7 @@ const QueuePage = () => {
           ) : (
             waitingTokens.map((entry) => (
               <div key={entry.queueEntryId} className="queue-token-card">
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                   <span className="token-pill">{entry.tokenNumber}</span>
                   <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                     {entry.branch?.name && (
@@ -322,7 +333,7 @@ const QueuePage = () => {
           ) : (
             calledTokens.map((entry) => (
               <div key={entry.queueEntryId} className="queue-token-card" style={{ borderLeft: '4px solid #f59e0b' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                   <span className="token-pill" style={{ background: '#fef3c7', color: '#b45309' }}>
                     {entry.tokenNumber}
                   </span>
@@ -382,7 +393,7 @@ const QueuePage = () => {
           ) : (
             activeConsultationTokens.map((entry) => (
               <div key={entry.queueEntryId} className="queue-token-card" style={{ borderLeft: '4px solid #10b981' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                   <span className="token-pill" style={{ background: '#d1fae5', color: '#065f46' }}>
                     {entry.tokenNumber}
                   </span>
@@ -417,6 +428,56 @@ const QueuePage = () => {
                     title="Mark Done"
                   >
                     <CheckCircle2 size={14} color="#10b981" />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Column 4: Skipped */}
+        <div className="queue-col" style={{ background: '#fef2f2', borderColor: '#fecaca' }}>
+          <div className="queue-col-header" style={{ borderColor: '#fca5a5' }}>
+            <span style={{ fontWeight: 700, fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px', color: '#b91c1c' }}>
+              <SkipForward size={16} /> Skipped ({skippedTokens.length})
+            </span>
+          </div>
+
+          {skippedTokens.length === 0 ? (
+            <p style={{ textAlign: 'center', color: '#94a3b8', padding: '30px 10px', fontSize: '13px' }}>
+              No skipped tokens.
+            </p>
+          ) : (
+            skippedTokens.map((entry) => (
+              <div key={entry.queueEntryId} className="queue-token-card" style={{ borderLeft: '4px solid #ef4444', opacity: 0.85 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                  <span className="token-pill" style={{ background: '#fee2e2', color: '#991b1b' }}>
+                    {entry.tokenNumber}
+                  </span>
+                  <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                    {entry.branch?.name && (
+                      <span className="badge badge-neutral" style={{ fontSize: '10.5px', padding: '2px 6px' }}>
+                        {entry.branch.name}
+                      </span>
+                    )}
+                    <span className="badge badge-danger">Skipped</span>
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '14px' }}>{entry.patient?.name}</div>
+                  <div style={{ fontSize: '12px', color: '#64748b' }}>
+                    {entry.patient?.patientNumber} • Dr. {entry.provider?.name || 'Unassigned'}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    style={{ flex: 1 }}
+                    onClick={() => handleRestore(entry.queueEntryId)}
+                  >
+                    <RotateCcw size={13} /> Restore to Waiting
                   </button>
                 </div>
               </div>

@@ -513,7 +513,53 @@ class PatientController {
         
         await Patient.updateOne({ patientId: patient.patientId }, { $inc: { balance: total } });
         
-        if (billingDetails.paidAmount > 0) {
+        const pMethod = billingDetails.paymentMethod || 'cash';
+        
+        if (pMethod === 'mixed') {
+          const cashAmount = Number(billingDetails.cashAmount) || 0;
+          const onlineAmount = Number(billingDetails.onlineAmount) || 0;
+          const totalPaid = cashAmount + onlineAmount;
+          
+          if (cashAmount > 0) {
+            const payCount = await Payment.countDocuments({ organizationId: req.organizationId });
+            await Payment.create({
+              paymentId: generateId('payment'),
+              paymentNumber: `PAY-${new Date().getFullYear()}-${String(payCount + 1).padStart(4, '0')}`,
+              organizationId: req.organizationId,
+              branchId: activeBranchId,
+              patientId: patient.patientId,
+              invoiceId: invoice.invoiceId,
+              amount: cashAmount,
+              method: 'cash',
+              status: 'verified',
+              verifiedBy: req.user.userId,
+              verifiedAt: new Date()
+            });
+          }
+          if (onlineAmount > 0) {
+            const payCount2 = await Payment.countDocuments({ organizationId: req.organizationId });
+            await Payment.create({
+              paymentId: generateId('payment'),
+              paymentNumber: `PAY-${new Date().getFullYear()}-${String(payCount2 + 1).padStart(4, '0')}`,
+              organizationId: req.organizationId,
+              branchId: activeBranchId,
+              patientId: patient.patientId,
+              invoiceId: invoice.invoiceId,
+              amount: onlineAmount,
+              method: 'upi',
+              status: 'verified',
+              verifiedBy: req.user.userId,
+              verifiedAt: new Date()
+            });
+          }
+          
+          invoice.paidAmount = totalPaid;
+          invoice.balance = Math.max(0, invoice.total - totalPaid);
+          invoice.status = invoice.balance <= 0 ? 'paid' : 'partially_paid';
+          await invoice.save();
+          
+          await Patient.updateOne({ patientId: patient.patientId }, { $inc: { balance: -totalPaid } });
+        } else if (billingDetails.paidAmount > 0) {
           const paidAmount = Number(billingDetails.paidAmount);
           const payCount = await Payment.countDocuments({ organizationId: req.organizationId });
           const paymentNumber = `PAY-${new Date().getFullYear()}-${String(payCount + 1).padStart(4, '0')}`;
@@ -526,7 +572,7 @@ class PatientController {
             patientId: patient.patientId,
             invoiceId: invoice.invoiceId,
             amount: paidAmount,
-            method: 'cash',
+            method: pMethod,
             status: 'verified',
             verifiedBy: req.user.userId,
             verifiedAt: new Date()
@@ -538,7 +584,6 @@ class PatientController {
           await invoice.save();
           
           await Patient.updateOne({ patientId: patient.patientId }, { $inc: { balance: -paidAmount } });
-          
           routeData.payment = payment;
         }
         routeData.invoice = invoice;

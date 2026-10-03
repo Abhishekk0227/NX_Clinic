@@ -99,7 +99,7 @@ const ReceiptDetailPage = () => {
         </div>
 
         {/* Attached Medical Prescription & Clinical Summary */}
-        {(receipt.prescription || receipt.clinicalRecord || receipt.doctor) && (
+        {(receipt.prescription || receipt.clinicalRecord) && (
           <div style={{ marginBottom: '24px', borderTop: '2px dashed #cbd5e1', paddingTop: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px', marginBottom: '16px' }}>
               <div>

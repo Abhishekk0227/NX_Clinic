@@ -448,13 +448,13 @@ const InvoiceDetailPage = () => {
                 <div className="table-responsive">
                   <table className="data-table" style={{ fontSize: '13px', border: '1px solid #cbd5e1' }}>
                     <thead>
-                      <tr style={{ background: '#0f172a', color: '#ffffff' }}>
-                        <th style={{ width: '4%', textAlign: 'center', color: '#ffffff' }}>#</th>
-                        <th style={{ width: '38%', color: '#ffffff' }}>Medicine / Drug Name</th>
-                        <th style={{ width: '12%', textAlign: 'center', color: '#ffffff' }}>Dosage</th>
-                        <th style={{ width: '15%', textAlign: 'center', color: '#ffffff' }}>Frequency (M-A-N)</th>
-                        <th style={{ width: '11%', textAlign: 'center', color: '#ffffff' }}>Duration</th>
-                        <th style={{ width: '20%', color: '#ffffff' }}>Instructions / Timing</th>
+                      <tr style={{ background: '#f1f5f9', color: '#0f172a', borderBottom: '2px solid #cbd5e1' }}>
+                        <th style={{ width: '4%', textAlign: 'center', color: '#64748b' }}>#</th>
+                        <th style={{ width: '38%', color: '#0f172a' }}>Medicine / Drug Name</th>
+                        <th style={{ width: '12%', textAlign: 'center', color: '#0f172a' }}>Dosage</th>
+                        <th style={{ width: '15%', textAlign: 'center', color: '#0f172a' }}>Frequency (M-A-N)</th>
+                        <th style={{ width: '11%', textAlign: 'center', color: '#0f172a' }}>Duration</th>
+                        <th style={{ width: '20%', color: '#0f172a' }}>Instructions / Timing</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -488,7 +488,7 @@ const InvoiceDetailPage = () => {
             </div>
 
             {/* Doctor's Special Advice, Dietary Notes & Next Appointment */}
-            <div style={{ display: 'grid', gridTemplateColumns: invoice.followUp ? '1.5fr 1fr' : '1fr', gap: '16px', marginBottom: '22px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: invoice.followUp ? '1.5fr 1fr' : '1fr', gap: '16px', marginBottom: '22px', alignItems: 'start' }}>
               {/* Advice Box */}
               <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '12px 16px' }}>
                 <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#92400e', fontWeight: 900, letterSpacing: '0.5px', marginBottom: '4px' }}>
