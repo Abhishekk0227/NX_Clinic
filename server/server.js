@@ -36,7 +36,7 @@ app.get('/api/ready', (req, res) => {
 
 // Master API v1 router
 app.use('/api/v1', routes);
-app.use('/',res.json({"message":"server is running"}));
+app.use('/',(req,res)=>{res.json({"message":"server is running"})});
 // Central Error Handler
 app.use(errorHandler);
 
