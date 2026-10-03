@@ -6,7 +6,7 @@ const morgan = require('morgan');
 const path = require('path');
 const connectDB = require('./src/config/db');
 const routes = require('./src/routes');
-const errorHandler = require('./middleware/errorHandler');
+const errorHandler = require('./src/middleware/errorHandler');
 
 const app = express();
 
