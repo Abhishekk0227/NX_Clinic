@@ -27,9 +27,15 @@ class UserController {
 
   static async createUser(req, res, next) {
     try {
-      const { name, email, password, roleId, roleIds, branchId, phone } = req.body;
+      const { name, email, password, roleId, roleIds, branchId, phone, staffId } = req.body;
       if (!name || !email || !password || (!roleId && (!roleIds || !roleIds.length))) {
         return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Name, email, password, and role are required' } });
+      }
+
+      if (staffId) {
+        const staff = await Staff.findOne({ staffId, organizationId: req.organizationId });
+        if (!staff) return res.status(404).json({ success: false, error: { message: 'Staff member not found' } });
+        if (staff.userId) return res.status(400).json({ success: false, error: { message: 'This staff member already has a user account' } });
       }
 
       const existing = await User.findOne({ organizationId: req.organizationId, email: email.toLowerCase().trim() });
@@ -44,11 +50,16 @@ class UserController {
         return res.status(404).json({ success: false, error: { code: 'ROLE_NOT_FOUND', message: 'Selected role not found' } });
       }
 
+      if (req.role !== 'super_admin' && role.key === 'super_admin') {
+        return res.status(403).json({ success: false, error: { message: 'You cannot assign the super_admin role.' } });
+      }
+
       const passwordHash = await bcrypt.hash(password, 10);
       const user = await User.create({
         userId: generateId('user'),
         organizationId: req.organizationId,
         branchId: branchId || req.branchId,
+        staffId: staffId || null,
         name,
         email: email.toLowerCase().trim(),
         phone,
@@ -57,6 +68,10 @@ class UserController {
         roleIds: finalRoleIds,
         roleKey: role.key
       });
+
+      if (staffId) {
+        await Staff.updateOne({ staffId, organizationId: req.organizationId }, { userId: user.userId });
+      }
 
       AuditService.log({
         organizationId: req.organizationId,
@@ -98,6 +113,9 @@ class UserController {
       const roles = await Role.find({ roleId: { $in: finalRoleIds }, organizationId: req.organizationId });
       const role = roles.length ? roles[0] : null;
         if (role) {
+          if (req.role !== 'super_admin' && role.key === 'super_admin') {
+            return res.status(403).json({ success: false, error: { message: 'You cannot assign the super_admin role.' } });
+          }
           user.roleId = roleId;
           user.roleKey = role.key;
         }
@@ -136,6 +154,9 @@ class UserController {
         return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'User not found' } });
       }
 
+      if (user.staffId) {
+        await Staff.updateOne({ staffId: user.staffId }, { $unset: { userId: 1 } });
+      }
       await user.deleteOne();
 
       AuditService.log({
@@ -169,6 +190,14 @@ class UserController {
         return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Role name and key are required' } });
       }
 
+      if (req.role !== 'super_admin') {
+        const forbiddenPerms = ['admin.manage', 'admin.branches', 'admin.roles', '*'];
+        const hasForbidden = permissions && permissions.some(p => forbiddenPerms.includes(p));
+        if (hasForbidden || key.toLowerCase() === 'super_admin') {
+          return res.status(403).json({ success: false, error: { message: 'You do not have permission to grant high-level administrative access.' } });
+        }
+      }
+
       const role = await Role.create({
         roleId: generateId('role'),
         organizationId: req.organizationId,
@@ -200,6 +229,18 @@ class UserController {
       const role = await Role.findOne({ roleId: id, organizationId: req.organizationId });
       if (!role) {
         return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Role not found' } });
+      }
+
+      if (role.isSystem && req.role !== 'super_admin') {
+        return res.status(403).json({ success: false, error: { message: 'Cannot edit system roles' } });
+      }
+
+      if (req.role !== 'super_admin') {
+        const forbiddenPerms = ['admin.manage', 'admin.branches', 'admin.roles', '*'];
+        const hasForbidden = req.body.permissions && req.body.permissions.some(p => forbiddenPerms.includes(p));
+        if (hasForbidden || role.key === 'super_admin') {
+          return res.status(403).json({ success: false, error: { message: 'You do not have permission to grant high-level administrative access.' } });
+        }
       }
 
       const before = role.toObject();

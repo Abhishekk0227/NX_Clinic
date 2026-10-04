@@ -53,6 +53,9 @@ router.delete('/roles/:id', checkPermission('admin.roles'), async (req, res, nex
     try {
       const role = await require('../models').Role.findOne({ roleId: req.params.id, organizationId: req.organizationId });
       if(!role) return res.status(404).json({success: false});
+      if (role.isSystem && req.role !== 'super_admin') {
+        return res.status(403).json({ success: false, error: { message: 'Cannot delete system roles' } });
+      }
       await role.deleteOne();
       res.json({success: true});
     } catch(err){next(err);}

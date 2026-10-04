@@ -88,7 +88,7 @@ const AdminHub = () => {
   const [editingStaffId, setEditingStaffId] = useState(null);
 
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
-  const [userForm, setUserForm] = useState({ name: '', email: '', password: '', roleIds: [], branchId: '', phone: '', status: 'ACTIVE' });
+  const [userForm, setUserForm] = useState({ name: '', email: '', password: '', roleIds: [], branchId: '', phone: '', status: 'ACTIVE', staffId: '' });
   const [editingUserId, setEditingUserId] = useState(null);
 
   // Clinical Vitals & Triage Configuration CRUD state
@@ -355,7 +355,7 @@ const AdminHub = () => {
       }
       setIsUserModalOpen(false);
       setEditingUserId(null);
-      setUserForm({ name: '', email: '', password: '', roleIds: [], branchId: '', phone: '', status: 'ACTIVE' });
+      setUserForm({ name: '', email: '', password: '', roleIds: [], branchId: '', phone: '', status: 'ACTIVE', staffId: '' });
       loadAdminData();
     } catch(err) {
       addToast(err.message, 'error');
@@ -363,7 +363,7 @@ const AdminHub = () => {
   };
 
   const openEditUser = (u) => {
-    setUserForm({ name: u.name, email: u.email, password: '', roleIds: u.roleIds || [u.roleId], branchId: u.branchId || '', phone: u.phone || '', status: u.status });
+    setUserForm({ name: u.name, email: u.email, password: '', roleIds: u.roleIds || [u.roleId], branchId: u.branchId || '', phone: u.phone || '', status: u.status, staffId: u.staffId || '' });
     setEditingUserId(u.userId);
     setIsUserModalOpen(true);
   };
@@ -694,7 +694,7 @@ const AdminHub = () => {
           <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
             <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3 style={{ fontSize: '16px' }}>System User Accounts</h3>
-              <button className="btn btn-primary btn-sm" onClick={() => { setEditingUserId(null); setUserForm({ name: '', email: '', password: '', roleId: '', branchId: '', phone: '', status: 'ACTIVE' }); setIsUserModalOpen(true); }}><Plus size={14} /> Add User</button>
+              <button className="btn btn-primary btn-sm" onClick={() => { setEditingUserId(null); setUserForm({ name: '', email: '', password: '', roleIds: [], branchId: '', phone: '', status: 'ACTIVE', staffId: '' }); setIsUserModalOpen(true); }}><Plus size={14} /> Add User</button>
             </div>
             <div className="table-responsive">
               <table className="data-table">
@@ -711,7 +711,12 @@ const AdminHub = () => {
                 <tbody>
                   {users.slice((currentUserPage - 1) * pageSize, currentUserPage * pageSize).map((u) => (
                     <tr key={u.userId}>
-                      <td style={{ fontWeight: 600 }}>{u.name}</td>
+                      <td style={{ fontWeight: 600 }}>
+                        {u.name}
+                        {u.staffId && (
+                          <div style={{ fontSize: '11px', color: 'var(--primary)', marginTop: '2px' }}>Linked Staff Profile</div>
+                        )}
+                      </td>
                       <td>{u.email}</td>
                       <td><span className="badge badge-info">{u.roleName || u.roleKey}</span></td>
                       <td><span className="badge badge-success">{u.status}</span></td>
@@ -753,8 +758,12 @@ const AdminHub = () => {
                   <h4 style={{ fontSize: '15px', color: 'var(--primary-dark)' }}>{r.name}</h4>
                   <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                     <span className="badge badge-neutral">{r.key}</span>
-                    <button className="btn btn-icon" onClick={() => openEditRole(r)}><Edit2 size={14} /></button>
-                    {r.key !== 'super_admin' && <button className="btn btn-icon" style={{color: 'red'}} onClick={() => handleDeleteRole(r.roleId)}><Trash2 size={14} /></button>}
+                    {(!r.isSystem || user?.role === 'super_admin') && (
+                      <button className="btn btn-icon" onClick={() => openEditRole(r)}><Edit2 size={14} /></button>
+                    )}
+                    {(!r.isSystem || user?.role === 'super_admin') && r.key !== 'super_admin' && (
+                      <button className="btn btn-icon" style={{color: 'red'}} onClick={() => handleDeleteRole(r.roleId)}><Trash2 size={14} /></button>
+                    )}
                   </div>
                 </div>
                 <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px' }}>{r.description}</p>
@@ -1424,9 +1433,42 @@ const AdminHub = () => {
       {/* User Modal */}
       <Modal isOpen={isUserModalOpen} onClose={() => setIsUserModalOpen(false)} title={editingUserId ? "Edit User" : "Add User"} maxWidth="500px">
         <form onSubmit={handleUserSubmit}>
+          {!editingUserId && (
+            <div className="form-group" style={{ background: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '16px' }}>
+              <label className="form-label" style={{ color: '#0f172a', fontWeight: 600 }}>Link to Staff Member (Optional)</label>
+              <select 
+                className="form-select" 
+                value={userForm.staffId || ''} 
+                onChange={e => {
+                  const sId = e.target.value;
+                  const selectedStaff = staff.find(s => s.staffId === sId);
+                  if (selectedStaff) {
+                    setUserForm({
+                      ...userForm, 
+                      staffId: sId,
+                      name: selectedStaff.name,
+                      email: selectedStaff.email || userForm.email,
+                      phone: selectedStaff.phone || userForm.phone,
+                      branchId: selectedStaff.branchId || userForm.branchId
+                    });
+                  } else {
+                    setUserForm({...userForm, staffId: sId});
+                  }
+                }}
+              >
+                <option value="">-- Create Standalone User --</option>
+                {staff.filter(s => !s.userId).map(s => (
+                  <option key={s.staffId} value={s.staffId}>{s.name} ({s.designation})</option>
+                ))}
+              </select>
+              <span style={{ fontSize: '11px', color: '#64748b', display: 'block', marginTop: '4px' }}>
+                Select a staff member to auto-fill details and link this user account to their clinical profile.
+              </span>
+            </div>
+          )}
           <div className="form-group">
             <label className="form-label">Name *</label>
-            <input type="text" required className="form-input" value={userForm.name} onChange={e => setUserForm({...userForm, name: e.target.value})} />
+            <input type="text" required className="form-input" value={userForm.name} onChange={e => setUserForm({...userForm, name: e.target.value})} disabled={!!userForm.staffId && !editingUserId} />
           </div>
           <div className="form-row">
             <div className="form-group">
@@ -1453,7 +1495,7 @@ const AdminHub = () => {
             <div className="form-group">
               <label className="form-label">Roles *</label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '150px', overflowY: 'auto', border: '1px solid #e2e8f0', padding: '10px', borderRadius: '6px' }}>
-                {roles.map(r => (
+                {roles.filter(r => user?.role === 'super_admin' || r.key !== 'super_admin').map(r => (
                   <label key={r.roleId} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
                     <input 
                       type="checkbox" 
@@ -1516,28 +1558,52 @@ const AdminHub = () => {
             <textarea className="form-input" rows="2" value={roleForm.description} onChange={e => setRoleForm({...roleForm, description: e.target.value})}></textarea>
           </div>
           <div className="form-group">
-            <label className="form-label">Permissions</label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', maxHeight: '300px', overflowY: 'auto', border: '1px solid #e2e8f0', padding: '12px', borderRadius: '6px' }}>
-              {permissions.map(p => (
-                <label key={p.permissionId} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13px' }}>
-                  <input 
-                    type="checkbox" 
-                    style={{ marginTop: '3px' }}
-                    checked={roleForm.permissions.includes(p.key)}
-                    onChange={e => {
-                      const newPerms = e.target.checked 
-                        ? [...roleForm.permissions, p.key]
-                        : roleForm.permissions.filter(k => k !== p.key);
-                      setRoleForm({...roleForm, permissions: newPerms});
-                    }}
-                  />
-                  <div>
-                    <strong>{p.name}</strong>
-                    <div style={{ fontSize: '11px', color: '#64748b' }}>{p.key}</div>
+            {(() => {
+              const forbiddenPerms = ['admin.manage', 'admin.branches', 'admin.roles', '*'];
+              const filteredPermissions = permissions.filter(p => user?.role === 'super_admin' || !forbiddenPerms.includes(p.key));
+              return (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <label className="form-label" style={{ marginBottom: 0 }}>Permissions</label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer', color: 'var(--primary)', fontWeight: 600 }}>
+                      <input 
+                        type="checkbox"
+                        checked={roleForm.permissions.length === filteredPermissions.length && filteredPermissions.length > 0}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setRoleForm({...roleForm, permissions: filteredPermissions.map(p => p.key)});
+                          } else {
+                            setRoleForm({...roleForm, permissions: []});
+                          }
+                        }}
+                      />
+                      Select All
+                    </label>
                   </div>
-                </label>
-              ))}
-            </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', maxHeight: '300px', overflowY: 'auto', border: '1px solid #e2e8f0', padding: '12px', borderRadius: '6px' }}>
+                    {filteredPermissions.map(p => (
+                      <label key={p.permissionId} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13px' }}>
+                        <input 
+                          type="checkbox" 
+                          style={{ marginTop: '3px' }}
+                          checked={roleForm.permissions.includes(p.key)}
+                          onChange={e => {
+                            const newPerms = e.target.checked 
+                              ? [...roleForm.permissions, p.key]
+                              : roleForm.permissions.filter(k => k !== p.key);
+                            setRoleForm({...roleForm, permissions: newPerms});
+                          }}
+                        />
+                        <div>
+                          <strong>{p.name}</strong>
+                          <div style={{ fontSize: '11px', color: '#64748b' }}>{p.key}</div>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </>
+              );
+            })()}
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '16px' }}>
             <button type="button" className="btn btn-secondary" onClick={() => setIsRoleModalOpen(false)}>Cancel</button>

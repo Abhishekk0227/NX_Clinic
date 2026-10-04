@@ -66,6 +66,7 @@ const UserSchema = new mongoose.Schema({
   userId: { type: String, required: true, unique: true, index: true },
   organizationId: { type: String, required: true, index: true },
   branchId: { type: String, index: true },
+  staffId: { type: String, index: true },
   name: { type: String, required: true },
   email: { type: String, required: true, lowercase: true, trim: true },
   phone: String,
