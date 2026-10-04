@@ -254,7 +254,6 @@ class BillingController {
       // Status: if needs verification (e.g. offline screenshot submitted) -> pending_verification, else verified
       const status = needsVerification ? 'pending_verification' : 'verified';
       
-      const parsedAmount = parseFloat(amount) || 0;
       const parsedDiscount = parseFloat(discountAmount) || 0;
 
       let payment = null;
