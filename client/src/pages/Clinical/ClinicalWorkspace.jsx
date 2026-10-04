@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import DynamicFormRenderer from '../../components/DynamicFormRenderer';
 import Modal from '../../components/Modal';
+import LoadingButton from '../../components/LoadingButton';
 import {
   Stethoscope,
   Save,
@@ -21,7 +22,8 @@ import {
   Calendar,
   User,
   HeartPulse,
-  Clock
+  Clock,
+  Eye
 } from 'lucide-react';
 
 const ClinicalWorkspace = () => {
@@ -62,6 +64,7 @@ const ClinicalWorkspace = () => {
   const [prescriptionNotes, setPrescriptionNotes] = useState('');
   const [followUpDate, setFollowUpDate] = useState('');
   const [followUpNotes, setFollowUpNotes] = useState('');
+  const [waiveConsultationFee, setWaiveConsultationFee] = useState(false);
 
   // Previous Visits History Index (0 = most recent previous visit)
   const [selectedPrevIndex, setSelectedPrevIndex] = useState(0);
@@ -75,6 +78,7 @@ const ClinicalWorkspace = () => {
     procedureDetails: '',
     cost: 0
   });
+  const [savingTreatment, setSavingTreatment] = useState(false);
 
   // Add Medicine Modal
   const [isMedicineModalOpen, setIsMedicineModalOpen] = useState(false);
@@ -236,7 +240,7 @@ const ClinicalWorkspace = () => {
       }
 
       // 5. Complete Encounter (triggers invoice generation and queue completion)
-      const res = await api.completeEncounter(id);
+      const res = await api.completeEncounter(id, { waiveConsultationFee });
       addToast('Encounter completed! Invoice generated.', 'success');
 
       const invoiceId = res?.invoice?.invoiceId || res?.data?.invoice?.invoiceId;
@@ -254,6 +258,7 @@ const ClinicalWorkspace = () => {
 
   const handleAddTreatment = async (e) => {
     e.preventDefault();
+    setSavingTreatment(true);
     try {
       const res = await api.addTreatment({
         encounterId: id,
@@ -269,6 +274,8 @@ const ClinicalWorkspace = () => {
       fetchWorkspace();
     } catch (err) {
       addToast(err.message, 'error');
+    } finally {
+      setSavingTreatment(false);
     }
   };
 
@@ -358,14 +365,16 @@ const ClinicalWorkspace = () => {
             <Save size={16} /> Save Draft
           </button>
           {!isCompleted && (
-            <button
+            <LoadingButton
               type="button"
               className="btn btn-success"
               disabled={saving}
               onClick={handleCompleteEncounter}
+              loading={saving}
+              loadingText="Saving..."
             >
               <CheckCircle2 size={16} /> {encounter.paymentStatus === 'pending' ? 'Complete & Send to Billing' : 'Complete & Save'}
-            </button>
+            </LoadingButton>
           )}
         </div>
       </div>
@@ -845,18 +854,42 @@ const ClinicalWorkspace = () => {
               </div>
             </div>
             
+            {!isCompleted && workspace.previousVisits && workspace.previousVisits.length > 0 && (
+              <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f0f9ff', borderRadius: '8px', border: '1px solid #bae6fd', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <h4 style={{ margin: '0 0 5px 0', color: '#0369a1', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Eye size={16} /> Repeated Visit Detected
+                  </h4>
+                  <p style={{ margin: 0, fontSize: '13px', color: '#0c4a6e' }}>Previous record available. Charge consultation fee for today's visit?</p>
+                </div>
+                <div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: '500', color: '#0f172a' }}>
+                    <input 
+                      type="checkbox" 
+                      style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                      checked={!waiveConsultationFee}
+                      onChange={(e) => setWaiveConsultationFee(!e.target.checked)}
+                    />
+                    Charge Fee
+                  </label>
+                </div>
+              </div>
+            )}
+
             {!isCompleted && (
               <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
-                <button
+                <LoadingButton
                   type="button"
                   className="btn btn-success"
                   style={{ padding: '10px 24px', fontSize: '15px' }}
                   disabled={saving}
                   onClick={handleCompleteEncounter}
+                  loading={saving}
+                  loadingText="Saving..."
                 >
                   <CheckCircle2 size={18} style={{ marginRight: '8px' }} /> 
                   {encounter.paymentStatus === 'pending' ? 'Complete & Send to Billing' : 'Complete & Save'}
-                </button>
+                </LoadingButton>
               </div>
             )}
           </div>
@@ -936,9 +969,9 @@ const ClinicalWorkspace = () => {
             <button type="button" className="btn btn-secondary" onClick={() => setIsTreatmentModalOpen(false)}>
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary">
+            <LoadingButton type="submit" className="btn btn-primary" loading={savingTreatment} loadingText="Recording...">
               Record Treatment
-            </button>
+            </LoadingButton>
           </div>
         </form>
       </Modal>

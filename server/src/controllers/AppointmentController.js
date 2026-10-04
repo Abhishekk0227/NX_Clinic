@@ -22,7 +22,11 @@ class AppointmentController {
         query.branchId = effectiveBranchId;
       }
       if (providerId && providerId !== 'undefined') query.providerId = providerId;
-      if (status && status !== 'undefined') query.status = status;
+      if (status && status !== 'undefined' && status !== 'all') {
+        query.status = status;
+      } else if (!status || status === 'undefined' || status === 'all') {
+        query.status = { $in: ['scheduled', 'confirmed', 'rescheduled'] };
+      }
 
       if (startDate === 'undefined') startDate = undefined;
       if (endDate === 'undefined') endDate = undefined;

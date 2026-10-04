@@ -121,6 +121,7 @@ const EncounterSchema = new mongoose.Schema({
   startedAt: { type: Date, default: Date.now },
   completedAt: Date,
   notes: String,
+  isConsultationFeeWaived: { type: Boolean, default: false },
   version: { type: Number, default: 1 }
 }, { timestamps: true });
 

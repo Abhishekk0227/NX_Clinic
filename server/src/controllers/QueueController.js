@@ -235,6 +235,11 @@ class QueueController {
         return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Queue entry not found' } });
       }
 
+      const patient = await Patient.findOne({ patientId: entry.patientId, organizationId: req.organizationId });
+      if (patient && patient.balance > 0) {
+        return res.status(400).json({ success: false, error: { code: 'PAYMENT_PENDING', message: 'Patient has pending payment. Please complete payment first.' } });
+      }
+
       entry.status = 'completed';
       entry.completedAt = new Date();
       entry.version += 1;
@@ -288,16 +293,15 @@ class QueueController {
 
       // Log activity
       const reqUser = req.user || { userId: 'system', name: 'System' };
-      await AuditLog.create({
-        action: 'QUEUE_RESTORED',
-        resourceType: 'Queue',
-        resourceId: entry.queueEntryId,
-        performedBy: reqUser.userId,
-        details: {
-          patientId: entry.patientId,
-          after: { status: 'waiting' }
-        },
-        branchId: entry.branchId
+      AuditService.log({
+        organizationId: req.organizationId || entry.organizationId,
+        branchId: entry.branchId,
+        actorUserId: reqUser.userId,
+        actorName: reqUser.name,
+        action: 'queue.restored',
+        entityType: 'queueEntry',
+        entityId: entry.queueEntryId,
+        after: { status: 'waiting' }
       });
 
       return res.json({ success: true, message: 'Queue entry restored to waiting', data: entry });

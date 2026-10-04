@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Activity, Eye, EyeOff } from 'lucide-react';
+import LoadingButton from '../components/LoadingButton';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -112,14 +113,16 @@ const Login = () => {
             </div>
           </div>
 
-          <button
+          <LoadingButton
             type="submit"
             disabled={loading}
+            loading={loading}
+            loadingText="Authenticating..."
             className="btn btn-primary"
             style={{ width: '100%', padding: '12px', marginTop: '12px', fontSize: '14.5px', fontWeight: 700 }}
           >
-            {loading ? 'Authenticating...' : 'Sign In to Workspace'}
-          </button>
+            Sign In to Workspace
+          </LoadingButton>
         </form>
       </div>
     </div>

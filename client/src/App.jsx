@@ -14,6 +14,7 @@ import ClinicalWorkspace from './pages/Clinical/ClinicalWorkspace';
 import BillingPage from './pages/Billing/BillingPage';
 import InvoiceDetailPage from './pages/Billing/InvoiceDetailPage';
 import ReceiptDetailPage from './pages/Billing/ReceiptDetailPage';
+import BatchPrintPage from './pages/Billing/BatchPrintPage';
 import DocumentsFollowupsPage from './pages/Documents/DocumentsFollowupsPage';
 import ReportsPage from './pages/Reports/ReportsPage';
 import AdminHub from './pages/Administration/AdminHub';
@@ -61,6 +62,7 @@ const App = () => {
         <Route path="billing" element={<BillingPage />} />
         <Route path="billing/invoices/:id" element={<InvoiceDetailPage />} />
         <Route path="billing/receipts/:id" element={<ReceiptDetailPage />} />
+        <Route path="batch-print" element={<BatchPrintPage />} />
         <Route path="documents" element={<DocumentsFollowupsPage />} />
         <Route path="reports" element={<ReportsPage />} />
 

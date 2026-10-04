@@ -20,7 +20,8 @@ import {
   Eye,
   IndianRupee,
   UserCheck,
-  Edit2
+  Edit2,
+  Printer
 } from 'lucide-react';
 
 const PatientProfile = () => {
@@ -53,6 +54,8 @@ const PatientProfile = () => {
 
   // Direct Book Appointment Modal State
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
+  const [isBatchDownloadModalOpen, setIsBatchDownloadModalOpen] = useState(false);
+  const [selectedBatchInvoices, setSelectedBatchInvoices] = useState([]);
   const [aptStaffList, setAptStaffList] = useState([]);
   const [aptServicesList, setAptServicesList] = useState([]);
   const [newlyBookedAptId, setNewlyBookedAptId] = useState(null);
@@ -277,6 +280,13 @@ const PatientProfile = () => {
               onClick={() => navigate(`/billing?patientId=${patient.patientId}&action=new_invoice`)}
             >
               <CreditCard size={14} /> Create Bill
+            </button>
+            <button
+              className="btn btn-secondary btn-sm"
+              style={{ background: '#fff', color: '#0f172a' }}
+              onClick={() => setIsBatchDownloadModalOpen(true)}
+            >
+              <Printer size={14} /> Download Records
             </button>
           </div>
         </div>
@@ -1151,6 +1161,59 @@ const PatientProfile = () => {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* Batch Download Modal */}
+      <Modal isOpen={isBatchDownloadModalOpen} onClose={() => setIsBatchDownloadModalOpen(false)} title="Download Records (Prescriptions & Bills)">
+        <div style={{ marginBottom: '16px' }}>
+          <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>
+            Select the past appointments/invoices you want to download. A printable PDF layout will be generated for the selected records.
+          </p>
+          {hub.invoices && hub.invoices.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '350px', overflowY: 'auto' }}>
+              {hub.invoices.map((inv) => (
+                <div key={inv.invoiceId} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <input
+                    type="checkbox"
+                    style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                    checked={selectedBatchInvoices.includes(inv.invoiceId)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedBatchInvoices([...selectedBatchInvoices, inv.invoiceId]);
+                      } else {
+                        setSelectedBatchInvoices(selectedBatchInvoices.filter(id => id !== inv.invoiceId));
+                      }
+                    }}
+                  />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 600, fontSize: '13.5px' }}>{inv.invoiceNumber}</div>
+                    <div style={{ fontSize: '11px', color: '#64748b' }}>Date: {new Date(inv.issuedAt || inv.createdAt).toLocaleDateString('en-IN')}</div>
+                  </div>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a' }}>
+                    ₹{inv.total}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ padding: '20px', textAlign: 'center', color: '#64748b', fontSize: '13px', background: '#f1f5f9', borderRadius: '8px' }}>
+              No completed records/invoices found for this patient.
+            </div>
+          )}
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+          <button className="btn btn-secondary" onClick={() => setIsBatchDownloadModalOpen(false)}>Cancel</button>
+          <button 
+            className="btn btn-primary" 
+            disabled={selectedBatchInvoices.length === 0}
+            onClick={() => {
+              window.open(`/batch-print?invoices=${selectedBatchInvoices.join(',')}`, '_blank');
+              setIsBatchDownloadModalOpen(false);
+            }}
+          >
+            <Printer size={16} /> Generate Selected PDF
+          </button>
+        </div>
       </Modal>
     </div>
   );

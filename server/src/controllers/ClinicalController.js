@@ -295,10 +295,43 @@ class ClinicalController {
         name,
         toothNumber,
         procedureDetails,
-        cost,
+        cost: Number(cost),
         notes,
         status: 'completed'
       });
+
+      // Synchronize with existing Invoice if present
+      const treatmentCost = Number(cost) || 0;
+      if (treatmentCost > 0) {
+        const invoice = await Invoice.findOne({ encounterId, organizationId: req.organizationId });
+        if (invoice) {
+          const newItem = {
+            itemId: generateId('invoiceItem'),
+            serviceId: serviceId,
+            description: toothNumber ? `${name} (Tooth #${toothNumber})` : name,
+            quantity: 1,
+            unitPrice: treatmentCost,
+            discount: 0,
+            tax: 0,
+            total: treatmentCost,
+            sourceEntityType: 'treatment',
+            sourceEntityId: treatment.treatmentId
+          };
+          
+          await Invoice.updateOne(
+            { _id: invoice._id },
+            { 
+              $push: { items: newItem },
+              $inc: { subtotal: treatmentCost, total: treatmentCost, balance: treatmentCost }
+            }
+          );
+          
+          await Patient.updateOne(
+            { patientId: encounter.patientId },
+            { $inc: { balance: treatmentCost } }
+          );
+        }
+      }
 
       AuditService.log({
         organizationId: req.organizationId,
@@ -365,13 +398,22 @@ class ClinicalController {
   static async completeEncounter(req, res, next) {
     try {
       const { id } = req.params;
+      const { waiveConsultationFee } = req.body;
       const encounter = await Encounter.findOne({ encounterId: id, organizationId: req.organizationId });
       if (!encounter) {
         return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Encounter not found' } });
       }
 
+      const patient = await Patient.findOne({ patientId: encounter.patientId, organizationId: req.organizationId });
+      if (patient && patient.balance > 0) {
+        return res.status(400).json({ success: false, error: { code: 'PAYMENT_PENDING', message: 'Patient has pending payment. Please complete payment first.' } });
+      }
+
       encounter.status = 'completed';
       encounter.completedAt = new Date();
+      if (waiveConsultationFee === true) {
+        encounter.isConsultationFeeWaived = true;
+      }
       encounter.version += 1;
       await encounter.save();
 
@@ -406,7 +448,7 @@ class ClinicalController {
 
         // Add Consultation fee if configured
         const consultFee = provider ? provider.consultationFee || 0 : 0;
-        if (consultFee > 0) {
+        if (consultFee > 0 && waiveConsultationFee !== true) {
           items.push({
             itemId: generateId('invoiceItem'),
             description: `Consultation - ${provider.name}`,
@@ -466,6 +508,25 @@ class ClinicalController {
             { patientId: encounter.patientId },
             { $inc: { balance: subtotal } }
           );
+        }
+      } else {
+        // If invoice exists and fee is waived, remove the consultation fee line item
+        if (waiveConsultationFee === true) {
+          const consultItem = invoice.items.find(i => i.sourceEntityType === 'consultation' && i.sourceEntityId === encounter.encounterId);
+          if (consultItem) {
+            const amountToDeduct = consultItem.total;
+            await Invoice.updateOne(
+              { _id: invoice._id },
+              {
+                $pull: { items: { sourceEntityType: 'consultation', sourceEntityId: encounter.encounterId } },
+                $inc: { subtotal: -amountToDeduct, total: -amountToDeduct, balance: -amountToDeduct }
+              }
+            );
+            await Patient.updateOne(
+              { patientId: encounter.patientId },
+              { $inc: { balance: -amountToDeduct } }
+            );
+          }
         }
       }
 

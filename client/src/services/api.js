@@ -155,8 +155,8 @@ export const api = {
     fetch(`${API_BASE}/clinical/treatments`, { method: 'POST', headers: getHeaders(), body: JSON.stringify(body) }).then(handleResponse),
   savePrescription: (body) =>
     fetch(`${API_BASE}/clinical/prescriptions`, { method: 'POST', headers: getHeaders(), body: JSON.stringify(body) }).then(handleResponse),
-  completeEncounter: (id) =>
-    fetch(`${API_BASE}/clinical/encounters/${id}/complete`, { method: 'POST', headers: getHeaders() }).then(handleResponse),
+  completeEncounter: (id, body = {}) =>
+    fetch(`${API_BASE}/clinical/encounters/${id}/complete`, { method: 'POST', headers: getHeaders(), body: JSON.stringify(body) }).then(handleResponse),
 
   // Services
   getServices: (params = {}) => {

@@ -243,6 +243,11 @@ class BillingController {
         return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Invoice not found' } });
       }
 
+      const parsedAmount = parseFloat(amount) || 0;
+      if (parsedAmount > invoice.balance) {
+        return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Payment amount cannot exceed the invoice balance' } });
+      }
+
       const count = await Payment.countDocuments({ organizationId: req.organizationId });
       const paymentNumber = `PAY-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`;
 
