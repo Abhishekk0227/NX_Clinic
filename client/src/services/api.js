@@ -56,6 +56,8 @@ export const api = {
     fetch(`${API_BASE}/organizations/branches/${id}`, { method: 'PUT', headers: getHeaders(), body: JSON.stringify(body) }).then(handleResponse),
   deleteBranch: (id) =>
     fetch(`${API_BASE}/organizations/branches/${id}`, { method: 'DELETE', headers: getHeaders() }).then(handleResponse),
+  wipeBranchData: (id, password) =>
+    fetch(`${API_BASE}/organizations/branches/${id}/wipe`, { method: 'POST', headers: getHeaders(), body: JSON.stringify({ password }) }).then(handleResponse),
   getDepartments: () =>
     fetch(`${API_BASE}/organizations/departments`, { headers: getHeaders() }).then(handleResponse),
   createDepartment: (body) =>

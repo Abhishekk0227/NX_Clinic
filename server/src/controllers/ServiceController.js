@@ -5,14 +5,16 @@ const AuditService = require('../services/AuditService');
 class ServiceController {
   static async getServices(req, res, next) {
     try {
-      const { category, status, branchId } = req.query;
+      const { category, status, branchId: queryBranchId } = req.query;
       const query = { organizationId: req.organizationId };
       if (category) query.category = category;
       if (status) query.status = status;
       else query.status = { $ne: 'archived' };
 
-      if (branchId && branchId !== 'all' && branchId !== 'undefined') {
-        query.$or = [{ branchId }, { branchId: null }, { branchId: { $exists: false } }];
+      const activeBranchId = req.branchId || (queryBranchId && queryBranchId !== 'all' && queryBranchId !== 'undefined' ? queryBranchId : null);
+
+      if (activeBranchId) {
+        query.$or = [{ branchId: activeBranchId }, { branchId: null }, { branchId: { $exists: false } }, { branchId: '' }];
       }
 
       const services = await Service.find(query).sort({ category: 1, name: 1 });
@@ -69,6 +71,7 @@ class ServiceController {
       }
 
       const before = service.toObject();
+      if (req.body.branchId === '') req.body.branchId = null;
       Object.assign(service, req.body);
       service.version += 1;
       await service.save();

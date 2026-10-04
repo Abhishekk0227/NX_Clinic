@@ -71,7 +71,7 @@ const AdminHub = () => {
 
   // Service Modal
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
-  const [serviceForm, setServiceForm] = useState({ name: '', code: '', category: 'Consultation', price: 0, durationMinutes: 15 });
+  const [serviceForm, setServiceForm] = useState({ name: '', code: '', category: 'Consultation', price: 0, durationMinutes: 15, branchId: '' });
 
   const [editingServiceId, setEditingServiceId] = useState(null);
   
@@ -255,6 +255,25 @@ const AdminHub = () => {
     }
   };
 
+  // Branch Wipe State
+  const [isWipeModalOpen, setIsWipeModalOpen] = useState(false);
+  const [wipeBranchId, setWipeBranchId] = useState(null);
+  const [wipePassword, setWipePassword] = useState('');
+
+  const handleWipeBranch = async (e) => {
+    e.preventDefault();
+    if(!window.confirm('WARNING: This will permanently delete ALL patient records, invoices, appointments, and encounters for this branch. Are you ABSOLUTELY sure?')) return;
+    try {
+      await api.wipeBranchData(wipeBranchId, wipePassword);
+      addToast('Branch patient data wiped successfully!', 'success');
+      setIsWipeModalOpen(false);
+      setWipePassword('');
+      setWipeBranchId(null);
+    } catch(err) {
+      addToast(err.message, 'error');
+    }
+  };
+
   const handleStaffSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -378,7 +397,7 @@ const AdminHub = () => {
       }
       setIsServiceModalOpen(false);
       setEditingServiceId(null);
-      setServiceForm({ name: '', code: '', category: 'Consultation', price: 0, durationMinutes: 15 });
+      setServiceForm({ name: '', code: '', category: 'Consultation', price: 0, durationMinutes: 15, branchId: '' });
       loadAdminData();
     } catch (err) {
       addToast(err.message, 'error');
@@ -386,7 +405,7 @@ const AdminHub = () => {
   };
 
   const openEditService = (s) => {
-    setServiceForm({ name: s.name, code: s.code, category: s.category, price: s.price, durationMinutes: s.durationMinutes });
+    setServiceForm({ name: s.name, code: s.code, category: s.category, price: s.price, durationMinutes: s.durationMinutes, branchId: s.branchId || '' });
     setEditingServiceId(s.serviceId);
     setIsServiceModalOpen(true);
   };
@@ -590,6 +609,9 @@ const AdminHub = () => {
                     </div>
                     <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                       <button className="btn btn-secondary btn-sm" onClick={() => openEditBranch(b)} title="Edit Branch Profile & Letterhead"><Edit2 size={13} /> Edit Branch</button>
+                      <button className="btn btn-secondary btn-sm" style={{ color: '#ef4444' }} onClick={() => { setWipeBranchId(b.branchId); setIsWipeModalOpen(true); }} title="Wipe all patient data for this branch">
+                        Wipe Data
+                      </button>
                       {!b.isMain && <button className="btn btn-icon" style={{color: 'red'}} onClick={() => handleDeleteBranch(b.branchId)} title="Delete Branch"><Trash2 size={14} /></button>}
                     </div>
                   </div>
@@ -786,7 +808,19 @@ const AdminHub = () => {
                 {services.slice((currentServicePage - 1) * pageSize, currentServicePage * pageSize).map((svc) => (
                   <tr key={svc.serviceId}>
                     <td style={{ fontWeight: 700, fontFamily: 'monospace' }}>{svc.code}</td>
-                    <td style={{ fontWeight: 600 }}>{svc.name}</td>
+                    <td style={{ fontWeight: 600 }}>
+                      {svc.name}
+                      {svc.branchId && (
+                        <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 'normal', marginTop: '2px' }}>
+                          Branch ID: {svc.branchId}
+                        </div>
+                      )}
+                      {!svc.branchId && (
+                        <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 'normal', marginTop: '2px' }}>
+                          All Branches
+                        </div>
+                      )}
+                    </td>
                     <td><span className="badge badge-info">{svc.category}</span></td>
                     <td>{svc.durationMinutes} mins</td>
                     <td style={{ fontWeight: 700, color: '#10b981' }}>₹{svc.price}</td>
@@ -1277,6 +1311,21 @@ const AdminHub = () => {
             </div>
           </div>
 
+          <div className="form-group">
+            <label className="form-label">Branch Allocation</label>
+            <select
+              className="form-select"
+              value={serviceForm.branchId || ''}
+              onChange={(e) => setServiceForm({ ...serviceForm, branchId: e.target.value })}
+            >
+              <option value="">All Branches (Organization Wide)</option>
+              {branches.map(b => (
+                <option key={b.branchId} value={b.branchId}>{b.name}</option>
+              ))}
+            </select>
+            <span style={{ fontSize: '11px', color: '#64748b' }}>If assigned to a branch, only that branch can use this service.</span>
+          </div>
+
           <div className="form-row">
             <div className="form-group">
               <label className="form-label">Price (₹) *</label>
@@ -1653,6 +1702,32 @@ const AdminHub = () => {
             <button type="submit" className="btn btn-primary">
               {editingVitalId ? "Update Parameter" : "Create Parameter"}
             </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Wipe Branch Modal */}
+      <Modal isOpen={isWipeModalOpen} onClose={() => setIsWipeModalOpen(false)} title="Wipe Branch Data (DANGER)">
+        <form onSubmit={handleWipeBranch}>
+          <div style={{ background: '#fef2f2', border: '1px solid #f87171', color: '#991b1b', padding: '12px', borderRadius: '6px', fontSize: '13px', marginBottom: '16px' }}>
+            <strong>WARNING:</strong> You are about to permanently delete all patient-related data (patients, appointments, clinical records, invoices, payments, etc.) for this branch. 
+            <br/><br/>
+            This action <strong>cannot be undone</strong> and will result in complete data loss for these entities.
+          </div>
+          <div className="form-group">
+            <label className="form-label">Please enter your password to confirm:</label>
+            <input 
+              type="password" 
+              className="form-input" 
+              required 
+              value={wipePassword} 
+              onChange={e => setWipePassword(e.target.value)} 
+              placeholder="Your login password"
+            />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '18px' }}>
+            <button type="button" className="btn btn-secondary" onClick={() => setIsWipeModalOpen(false)}>Cancel</button>
+            <button type="submit" className="btn" style={{ background: '#ef4444', color: 'white', border: 'none' }}>Wipe All Patient Data</button>
           </div>
         </form>
       </Modal>

@@ -171,6 +171,64 @@ class OrganizationController {
     }
   }
 
+  static async wipeBranchData(req, res, next) {
+    try {
+      const { id } = req.params; // branchId or 'all'
+      const { password } = req.body;
+      const bcrypt = require('bcryptjs');
+
+      if (!password) {
+        return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Password is required to wipe data' } });
+      }
+
+      const isMatch = await bcrypt.compare(password, req.user.passwordHash);
+      if (!isMatch) {
+        return res.status(401).json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Incorrect password' } });
+      }
+
+      const query = { organizationId: req.organizationId };
+      if (id !== 'all') {
+        query.branchId = id;
+      }
+
+      const {
+        Patient, Appointment, QueueEntry, Encounter, ClinicalRecord,
+        Treatment, Prescription, FollowUp, Invoice, Payment, Receipt,
+        Document, LedgerEntry
+      } = require('../models');
+
+      await Promise.all([
+        Patient.deleteMany(query),
+        Appointment.deleteMany(query),
+        QueueEntry.deleteMany(query),
+        Encounter.deleteMany(query),
+        ClinicalRecord.deleteMany(query),
+        Treatment.deleteMany(query),
+        Prescription.deleteMany(query),
+        FollowUp.deleteMany(query),
+        Invoice.deleteMany(query),
+        Payment.deleteMany(query),
+        Receipt.deleteMany(query),
+        Document.deleteMany({ ...query, entityType: 'patient' }),
+        LedgerEntry.deleteMany(query)
+      ]);
+
+      AuditService.log({
+        organizationId: req.organizationId,
+        actorUserId: req.user.userId,
+        actorName: req.user.name,
+        action: 'branch.data_wiped',
+        entityType: 'branch',
+        entityId: id,
+        reason: 'Wiped all patient-related data'
+      });
+
+      return res.json({ success: true, message: 'Patient data wiped successfully' });
+    } catch (err) {
+      next(err);
+    }
+  }
+
   static async getDepartments(req, res, next) {
     try {
       const query = { organizationId: req.organizationId };

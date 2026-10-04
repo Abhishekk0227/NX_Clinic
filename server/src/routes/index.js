@@ -37,6 +37,7 @@ router.get('/organizations/branches', OrganizationController.getBranches);
 router.post('/organizations/branches', checkPermission('admin.branches'), OrganizationController.createBranch);
 router.put('/organizations/branches/:id', checkPermission('admin.branches'), OrganizationController.updateBranch);
 router.delete('/organizations/branches/:id', checkPermission('admin.branches'), OrganizationController.deleteBranch);
+router.post('/organizations/branches/:id/wipe', checkPermission('admin.branches'), OrganizationController.wipeBranchData);
 router.get('/organizations/departments', OrganizationController.getDepartments);
 router.post('/organizations/departments', checkPermission('admin.branches'), OrganizationController.createDepartment);
 
